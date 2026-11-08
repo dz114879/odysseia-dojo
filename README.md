@@ -85,15 +85,17 @@ validation that this repository cannot provide.
 
 ### Production public links
 
-Fixture and local builds intentionally render no fake canonical or source URL.
+Fixture and local builds do not invent a canonical URL or deployed source revision.
+Without source settings, the public footer links to the public
+[project repository](https://github.com/dz114879/odysseia-dojo) so the GitHub entry
+also remains available in local previews.
 Before a production build, set `DEPLOYMENT_MODE=production` together with a
 non-placeholder `PUBLIC_CANONICAL_URL` origin and
 `PUBLIC_SOURCE_REPOSITORY_URL` that identifies the public GitHub repository, and
 the exact lowercase 40-character `PUBLIC_SOURCE_COMMIT_SHA` checked out for the
 build. The build refuses a production-mode build without those values. When
-configured, a GitHub icon in the public header and in the tutorial page header
-links to that immutable public-code revision, without implying that tutorial
-material is public. The footer keeps only the centered `Made by KKTsN with 💖`.
+configured, the footer links to that immutable public-code revision,
+without implying that tutorial material is public.
 
 The fixture corpus is deliberately non-sensitive. It contains tutorial and
 extension examples, Chinese and English search terms, an outdated page, optional

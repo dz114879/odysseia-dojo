@@ -1,0 +1,533 @@
+/* A local, reversible skin. No layout or content changes until the secret is typed. */
+html:root[data-dojo-theme='d-meow'] {
+	color-scheme: light;
+	--paper: #91bddd;
+	--ink: #15384f;
+	--muted: #24465f;
+	--faint: #294c65;
+	--line: #214c692d;
+	--accent: #1c4b6c;
+	--sl-color-white: #15384f;
+	--sl-color-black: #f1f8fd;
+	--sl-color-text: #274960;
+	--sl-color-gray-1: #21465f;
+	--sl-color-gray-2: #294c65;
+	--sl-color-gray-3: #294c65;
+	--sl-color-gray-4: #6d90a9;
+	--sl-color-gray-5: #bad4e5;
+	--sl-color-gray-6: #dcecf6;
+	--sl-color-bg: #91bddd;
+	--sl-color-bg-nav: #91bddd;
+	--sl-color-bg-sidebar: #91bddd;
+	--sl-color-bg-inline-code: #e1edf57a;
+	--sl-color-bg-accent: #244c68;
+	--sl-color-accent: #20516f;
+	--sl-color-accent-low: #cee4f09c;
+	--sl-color-accent-high: #163e59;
+	--sl-color-hairline-light: #214c692d;
+	--sl-color-hairline: #214c692d;
+	background: var(--paper);
+	color: var(--ink);
+}
+html[data-dojo-theme='d-meow'] body {
+	background: radial-gradient(ellipse at 65% 15%, #d4e8f33d, transparent 65%), var(--paper);
+	color: var(--ink);
+}
+html[data-dojo-theme='d-meow'] ::selection {
+	background: #e2f2fb;
+	color: #163e59;
+}
+html[data-dojo-theme='d-meow'] :focus-visible {
+	outline-color: #15384f;
+}
+html[data-dojo-theme='d-meow'] .button:hover {
+	background: #24506e;
+}
+html[data-dojo-theme='d-meow'] .button-secondary:hover {
+	background: #cee4f09c;
+}
+html[data-dojo-theme='d-meow'] :is(.little-flower, .title-dash, .section-mark) {
+	color: #294c65;
+}
+html[data-dojo-theme='d-meow'] .public-hero {
+	position: relative;
+	grid-template-columns: minmax(0, 1fr) 220px;
+}
+.d-meow-greek {
+	font-family: Georgia, 'Times New Roman', serif;
+	font-weight: 600;
+	letter-spacing: -0.04em;
+}
+.d-meow-greek em {
+	font:
+		italic 1em/1.3 Georgia,
+		'Times New Roman',
+		serif;
+}
+html[data-dojo-theme='d-meow'] .public-brand .d-meow-greek {
+	font-size: 0.9em;
+}
+html[data-dojo-theme='d-meow'] .hero-title {
+	font-size: clamp(32px, 3.4vw, 43px);
+	gap: 0 0.28em;
+}
+html[data-dojo-theme='d-meow'] .hero-title .title-name {
+	width: 100%;
+	gap: 0.24em;
+}
+html[data-dojo-theme='d-meow'] .hero-title .title-dash {
+	display: none;
+}
+html[data-dojo-theme='d-meow'] .public-hero > .mascot {
+	display: none;
+}
+html[data-dojo-theme='d-meow'] .mascot :is(figcaption, .mascot-countdown, .mascot-words, .sr-only) {
+	display: none;
+}
+html[data-dojo-theme='d-meow'] .mascot-art img {
+	mask-image: none;
+}
+.d-meow-rewrite {
+	font: inherit;
+}
+.d-meow-correction {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 0.35em;
+	white-space: nowrap;
+	font: inherit;
+}
+.d-meow-correction s {
+	font: inherit;
+	text-decoration-line: line-through;
+	text-decoration-color: #305d79;
+	text-decoration-thickness: max(1.5px, 0.08em);
+	opacity: 0.78;
+}
+.d-meow-original {
+	color: #153e5b;
+	font: inherit;
+	font-size: 1em;
+	font-weight: 600;
+}
+.d-meow-companion {
+	position: relative;
+	margin: 0;
+	width: 220px;
+	max-width: 100%;
+	text-align: center;
+	color: #1d4762;
+	font: 12px/1.6 var(--dojo-sans, system-ui, sans-serif);
+}
+.d-meow-companion[data-placement='hero'] {
+	grid-column: 2;
+	grid-row: 1;
+	align-self: center;
+	margin-top: 35px;
+}
+.d-meow-companion[data-placement='reading'] {
+	display: grid;
+	grid-template-columns: 76px 100px;
+	gap: 0 22px;
+	width: 198px;
+	margin: 36px 0 12px auto;
+}
+.d-meow-companion[data-placement='reading'] .d-meow-sprite {
+	grid-column: 2;
+	grid-row: 2;
+}
+.d-meow-companion[data-placement='reading'] .d-meow-pause {
+	grid-column: 2;
+	grid-row: 3;
+	font-size: 11px;
+}
+.d-meow-sprite {
+	display: grid;
+	width: 100%;
+	pointer-events: none;
+	user-select: none;
+	-webkit-user-drag: none;
+}
+.d-meow-frame {
+	grid-area: 1 / 1;
+	display: block;
+	width: 100%;
+	height: auto;
+	filter: drop-shadow(0 10px 12px #21435b16);
+	animation: d-meow-wave 800ms steps(1, end) infinite;
+}
+.d-meow-frame-2 {
+	animation-name: d-meow-wave-other;
+}
+.d-meow-bubble {
+	position: relative;
+	display: table;
+	width: max-content;
+	max-width: 230px;
+	margin: 0 auto 9px;
+	padding: 12px 18px;
+	border: 1px solid #3b668b45;
+	border-radius: 14px 14px 14px 3px;
+	background: #f1f8fd;
+	box-shadow: 3px 4px 0 #4877981b;
+	color: #214d69;
+	font: 500 13px/1.7 var(--dojo-sans, system-ui, sans-serif);
+	letter-spacing: 0.03em;
+	animation: d-meow-proclaim 4.8s ease-in-out infinite;
+	pointer-events: none;
+}
+.d-meow-bubble::after {
+	content: '';
+	position: absolute;
+	bottom: -5px;
+	left: 25px;
+	width: 8px;
+	height: 8px;
+	border-bottom: 1px solid #3b668b45;
+	border-right: 1px solid #3b668b45;
+	background: inherit;
+	transform: rotate(45deg);
+}
+.d-meow-side-art {
+	position: absolute;
+	right: calc(100% + 14px);
+	bottom: 22px;
+	display: block;
+	width: 152px;
+	max-width: none;
+	height: auto;
+	transform: rotate(-4deg);
+	pointer-events: none;
+	user-select: none;
+	-webkit-user-drag: none;
+}
+.d-meow-pause {
+	border: 0;
+	padding: 3px 8px;
+	min-width: 44px;
+	min-height: 44px;
+	background: none;
+	color: #294c65;
+	font: inherit;
+	font-size: 9px;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	cursor: pointer;
+}
+.d-meow-companion[data-placement='reading'] .d-meow-bubble {
+	grid-column: 1 / -1;
+	grid-row: 1;
+	justify-self: end;
+	box-sizing: border-box;
+	max-width: 100%;
+	margin: 0 0 9px;
+	padding: 8px 12px;
+	font-size: 12px;
+}
+.d-meow-companion[data-placement='reading'] .d-meow-bubble::after {
+	left: auto;
+	right: 28px;
+}
+.d-meow-companion[data-placement='reading'] .d-meow-side-art {
+	position: static;
+	grid-column: 1;
+	grid-row: 2;
+	align-self: end;
+	width: 76px;
+}
+[data-paused='true'] :is(.d-meow-frame, .d-meow-bubble) {
+	animation-play-state: paused;
+}
+
+/* The broadcast uses one slow paper-like displacement, not flashing/glitch strobing. */
+html[data-dojo-takeover='true'] {
+	overflow: hidden;
+}
+.d-meow-takeover {
+	box-sizing: border-box;
+	width: 100vw;
+	max-width: none;
+	height: 100dvh;
+	max-height: none;
+	margin: 0;
+	padding: 24px;
+	border: 0;
+	background: transparent;
+	color: #16394f;
+	overflow: auto;
+	outline: none;
+}
+.d-meow-takeover[open] {
+	display: grid;
+	place-items: safe center;
+}
+.d-meow-takeover::backdrop {
+	background: #8db8d8f7;
+	backdrop-filter: blur(9px);
+	animation: d-meow-backdrop 600ms ease-out both;
+}
+.d-meow-broadcast {
+	position: relative;
+	width: min(660px, 100%);
+	box-sizing: border-box;
+	padding: 35px 46px 25px;
+	border: 1px solid #254e6b58;
+	background: #eaf4fb;
+	box-shadow: 14px 15px 0 #2857781a;
+	transform: rotate(-2deg);
+	animation: d-meow-interrupt 900ms cubic-bezier(0.18, 0.8, 0.18, 1) both;
+}
+.d-meow-broadcast::before {
+	content: '';
+	position: absolute;
+	inset: -7px 25px auto;
+	height: 7px;
+	background: repeating-linear-gradient(125deg, #234b66 0 9px, #a9cee6 9px 18px);
+}
+.d-meow-broadcast-kicker {
+	margin: 0 0 20px;
+	color: #52718a;
+	font: 10px/1.6 var(--dojo-sans, system-ui);
+	letter-spacing: 0.13em;
+}
+.d-meow-broadcast-title {
+	margin: 0;
+	font: 400 clamp(26px, 4vw, 39px)/1.5 var(--dojo-serif, serif);
+	letter-spacing: -0.035em;
+}
+.d-meow-broadcast-title span {
+	display: block;
+}
+.d-meow-broadcast-title span:last-child {
+	font-size: 1.2em;
+}
+.d-meow-stamp {
+	position: absolute;
+	right: 30px;
+	top: 36px;
+	padding: 6px 10px;
+	border: 2px solid #406d8b;
+	color: #406d8b;
+	font: 13px/1.3 var(--dojo-serif, serif);
+	transform: rotate(11deg);
+}
+.d-meow-broadcast-scene {
+	display: grid;
+	grid-template-columns: minmax(0, 0.92fr) minmax(0, 1fr);
+	gap: 20px;
+	align-items: end;
+	width: min(332px, 100%);
+	padding: 8px 0;
+	margin: 20px auto 0;
+}
+.d-meow-broadcast-scene .d-meow-companion {
+	width: 100%;
+	min-width: 0;
+}
+.d-meow-broadcast-scene .d-meow-bubble {
+	box-sizing: border-box;
+	max-width: 100%;
+}
+.d-meow-defeated {
+	margin: 0;
+	width: 100%;
+	text-align: center;
+}
+.d-meow-defeated-art {
+	position: relative;
+	aspect-ratio: 4 / 3;
+}
+.d-meow-defeated-art::before {
+	content: '☆ · ☆';
+	position: absolute;
+	top: 0;
+	right: 5px;
+	color: #678197;
+	font:
+		17px/1 system-ui,
+		sans-serif;
+	transform: rotate(-12deg);
+}
+.d-meow-defeated-art img {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 59%;
+	height: auto;
+	transform: translate(-50%, -50%) rotate(-78deg);
+	filter: saturate(0.65);
+	pointer-events: none;
+}
+.d-meow-defeated figcaption {
+	margin: 12px 0 0;
+	color: #46687f;
+	font: 12px/1.6 var(--dojo-sans, system-ui);
+}
+.d-meow-broadcast-status {
+	margin: 24px 0 10px;
+	font: 12px/1.6 var(--dojo-sans, system-ui);
+	color: #46687f;
+}
+.d-meow-progress {
+	height: 2px;
+	background: #335e7c28;
+	overflow: hidden;
+}
+.d-meow-progress::before {
+	content: '';
+	display: block;
+	height: 100%;
+	background: #335e7c;
+	transform-origin: left;
+	animation: d-meow-progress 4.6s linear both;
+}
+@keyframes d-meow-wave {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0;
+	}
+}
+@keyframes d-meow-wave-other {
+	0%,
+	100% {
+		opacity: 0;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+@keyframes d-meow-proclaim {
+	0%,
+	80%,
+	100% {
+		transform: translateY(0);
+	}
+	88% {
+		transform: translateY(-3px) rotate(-1deg);
+	}
+}
+@keyframes d-meow-interrupt {
+	0% {
+		transform: translateY(70px) rotate(7deg);
+		opacity: 0;
+	}
+	65% {
+		transform: translateY(-5px) rotate(-3deg);
+		opacity: 1;
+	}
+	100% {
+		transform: rotate(-2deg);
+	}
+}
+@keyframes d-meow-backdrop {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+@keyframes d-meow-progress {
+	from {
+		transform: scaleX(0);
+	}
+	to {
+		transform: scaleX(1);
+	}
+}
+@media (max-width: 900px) {
+	html[data-dojo-theme='d-meow'] .public-hero {
+		grid-template-columns: minmax(0, 1fr) 175px;
+		gap: 25px;
+	}
+	.d-meow-companion[data-placement='hero'] .d-meow-side-art {
+		width: 125px;
+	}
+}
+@media (max-width: 40rem) {
+	html[data-dojo-theme='d-meow'] .public-brand {
+		font-size: 15px;
+	}
+	html[data-dojo-theme='d-meow'] .public-header {
+		flex-wrap: wrap;
+		gap: 12px;
+	}
+	html[data-dojo-theme='d-meow'] .hero-title {
+		font-size: clamp(25px, 7.3vw, 37px);
+	}
+	html[data-dojo-theme='d-meow'] .public-hero {
+		grid-template-columns: minmax(0, 1fr) 112px;
+		gap: 0 14px;
+	}
+	.d-meow-companion[data-placement='hero'] {
+		grid-column: 2;
+		grid-row: 3 / 5;
+		margin-top: 20px;
+		align-self: center;
+	}
+	.d-meow-companion[data-placement='hero'] .d-meow-bubble {
+		position: absolute;
+		right: -3px;
+		bottom: 100%;
+		padding: 8px 11px;
+		font-size: 10px;
+	}
+	.d-meow-companion[data-placement='hero'] .d-meow-bubble::after {
+		left: auto;
+		right: 25px;
+	}
+	.d-meow-companion[data-placement='hero'] .d-meow-side-art {
+		position: static;
+		width: 96px;
+		margin: 20px auto 5px;
+		transform: rotate(-3deg);
+	}
+	.d-meow-takeover {
+		padding: 22px;
+	}
+	.d-meow-broadcast {
+		padding: 26px 25px 22px;
+	}
+	.d-meow-stamp {
+		font-size: 10px;
+		right: 18px;
+		top: 21px;
+	}
+	.d-meow-broadcast-kicker {
+		font-size: 8px;
+		letter-spacing: 0;
+		margin-bottom: 20px;
+	}
+	.d-meow-broadcast-title {
+		font-size: 25px;
+	}
+	.d-meow-broadcast-scene {
+		width: min(244px, 100%);
+		gap: 12px;
+	}
+	.d-meow-broadcast-scene .d-meow-bubble {
+		font-size: 11px;
+		padding: 9px 12px;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.d-meow-frame,
+	.d-meow-bubble,
+	.d-meow-broadcast,
+	.d-meow-progress::before,
+	.d-meow-takeover::backdrop {
+		animation: none;
+	}
+	.d-meow-frame-1 {
+		opacity: 1;
+	}
+	.d-meow-frame-2 {
+		opacity: 0;
+	}
+	.d-meow-pause {
+		display: none;
+	}
+}

@@ -1,0 +1,70 @@
+---
+import '../styles/mascot.css';
+const expressions = ['happy', 'annoyed', 'angry', 'furious'];
+---
+
+<figure class="mascot" data-mascot data-mood="happy">
+	<div class="mascot-stage">
+		<div class="mascot-words" data-mascot-words aria-hidden="true"></div>
+		<button
+			class="mascot-button"
+			data-mascot-button
+			type="button"
+			aria-label="戳一戳类脑娘"
+			aria-describedby="mascot-hint"
+			disabled
+		>
+			<span class="mascot-art" aria-hidden="true">
+				{expressions.map((expression) => (
+					<img
+						src={`/mascot/${expression}.webp`}
+						width="616"
+						height="880"
+						alt=""
+						draggable="false"
+						data-expression={expression}
+						decoding="async"
+					/>
+				))}
+			</span>
+		</button>
+	</div>
+	<figcaption>
+		<span class="mascot-caption" data-mascot-caption>
+			慢慢看，我在这里。
+		</span>
+		<span class="mascot-hint" id="mascot-hint">
+			轻戳打招呼 · 别连戳
+		</span>
+	</figcaption>
+	<span class="sr-only" data-mascot-live role="status" aria-atomic="true"></span>
+	<div class="mascot-countdown" data-mascot-countdown hidden>
+		<p role="status">
+			还有 <span data-mascot-seconds>8</span> 秒，道馆将闭馆 1 分钟。
+		</p>
+		<button class="text-button" data-mascot-cancel type="button">
+			好啦，不闹了
+		</button>
+	</div>
+</figure>
+
+<script>
+	import { mountMascot } from '../lib/mascot';
+	let cleanups: (() => void)[] = [];
+	function unmount() {
+		cleanups.forEach((cleanup) => cleanup());
+		cleanups = [];
+	}
+	function mount() {
+		unmount();
+		cleanups = [...document.querySelectorAll<HTMLElement>('[data-mascot]')].map(mountMascot);
+	}
+	mount();
+	document.addEventListener('astro:page-load', mount);
+	document.addEventListener('astro:before-swap', unmount);
+	window.addEventListener('dojo:theme-change', mount);
+	window.addEventListener('pagehide', unmount);
+	window.addEventListener('pageshow', (event) => {
+		if (event.persisted) mount();
+	});
+</script>

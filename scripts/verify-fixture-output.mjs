@@ -1,5 +1,5 @@
 import { lstat, readdir, readFile } from 'node:fs/promises';
-import { dirname, relative, resolve } from 'node:path';
+import { dirname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const scriptPath = fileURLToPath(import.meta.url);
@@ -43,7 +43,8 @@ async function walk(root, outputRoot) {
 		if (entry.isDirectory()) {
 			paths.push(...(await walk(entryPath, outputRoot)));
 		} else {
-			paths.push(relative(outputRoot, entryPath));
+			// Inventory rules use URL-style paths on every host, including Windows.
+			paths.push(relative(outputRoot, entryPath).split(sep).join('/'));
 		}
 	}
 	return paths;

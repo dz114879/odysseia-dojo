@@ -1,5 +1,82 @@
+@import './type.css';
+
 :root {
 	--sl-content-width: min(66rem, 92vw);
+	--sl-font: var(--dojo-sans);
+	--sl-color-accent-low: #3c3028;
+	--sl-color-accent: #c49b78;
+	--sl-color-accent-high: #e9d1b6;
+	--sl-color-bg: #24241f;
+	--sl-color-bg-nav: #24241f;
+	--sl-color-bg-sidebar: #24241f;
+	--sl-color-hairline-light: #3b3b32;
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-low: #f0e9de;
+	--sl-color-accent: #896347;
+	--sl-color-accent-high: #63452e;
+	--sl-color-white: #292925;
+	--sl-color-text: #4e5047;
+	--sl-color-bg: #faf8f4;
+	--sl-color-bg-nav: #faf8f4;
+	--sl-color-bg-sidebar: #faf8f4;
+	--sl-color-bg-inline-code: #eeece4;
+	--sl-color-hairline-light: #e2e1d9;
+	--sl-color-hairline: #e2e1d9;
+}
+
+.site-title {
+	font: 400 21px/1.5 var(--dojo-serif);
+	letter-spacing: -0.025em;
+}
+.dojo-doc-heading h1,
+.sl-markdown-content :is(h2, h3, h4) {
+	font-family: var(--dojo-serif);
+	font-weight: 400;
+	line-height: 1.6;
+}
+.dojo-doc-category {
+	font-weight: 400;
+	font-size: 12px;
+	letter-spacing: 0.1em;
+}
+.dojo-observation button {
+	border: 1px solid var(--sl-color-hairline-light);
+	border-radius: 99px;
+	padding: 6px 14px;
+	background: transparent;
+	color: var(--sl-color-text-accent);
+	font: inherit;
+	cursor: pointer;
+}
+.sl-markdown-content {
+	line-height: 1.95;
+}
+/* Plain fences and imported HTML need the same scroll boundary as highlighted code. */
+.sl-markdown-content pre {
+	max-width: 100%;
+	overflow-x: auto;
+}
+.sl-markdown-content > :is(h2, h3):not(:first-child) {
+	margin-top: 2em;
+}
+.sidebar-content a {
+	border-radius: 4px;
+}
+.sidebar-content a[aria-current='page'] {
+	background: var(--sl-color-accent-low);
+	color: var(--sl-color-accent-high);
+	font-weight: 500;
+}
+.right-sidebar-panel {
+	font-size: 12px;
+}
+
+@media (min-width: 50rem) {
+	.content-panel {
+		padding-top: 2.25rem;
+	}
 }
 
 /* Avoid a lingering touch overlay without hiding keyboard focus indicators. */

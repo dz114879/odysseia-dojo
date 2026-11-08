@@ -1,0 +1,20 @@
+---
+import '../styles/d-meow.css';
+---
+
+<!-- Resolve the local visual preference before paint; it is not an auth credential. -->
+<script is:inline>
+	try {
+		if (localStorage.getItem('dojo:theme:v1') === 'd-meow') document.documentElement.dataset.dojoTheme = 'd-meow';
+	} catch {
+		try {
+			if (sessionStorage.getItem('dojo:theme:v1') === 'd-meow') document.documentElement.dataset.dojoTheme = 'd-meow';
+		} catch {
+			/* Storage is optional. */
+		}
+	}
+</script>
+<script>
+	import { startDMeowTheme } from '../lib/d-meow';
+	startDMeowTheme();
+</script>

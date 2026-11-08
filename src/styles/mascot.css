@@ -1,0 +1,197 @@
+.mascot {
+	--mascot-ink: #8a6954;
+	position: relative;
+	margin: 0;
+	text-align: center;
+	align-self: center;
+	min-width: 0;
+}
+
+.mascot-stage {
+	position: relative;
+}
+.mascot-button {
+	display: block;
+	width: 100%;
+	padding: 0;
+	border: 0;
+	border-radius: 50% 50% 1rem 1rem;
+	background: none;
+	touch-action: manipulation;
+	-webkit-tap-highlight-color: transparent;
+	user-select: none;
+}
+.mascot-button:enabled {
+	cursor: pointer;
+}
+.mascot-art {
+	display: grid;
+}
+.mascot-art img {
+	grid-area: 1 / 1;
+	display: block;
+	width: 100%;
+	height: auto;
+	opacity: 0;
+	filter: saturate(0.84);
+	mask-image: linear-gradient(#000 93%, transparent);
+	transition: opacity 160ms ease;
+}
+[data-mood='happy'] [data-expression='happy'],
+[data-mood='annoyed'] [data-expression='annoyed'],
+[data-mood='angry'] [data-expression='angry'],
+[data-mood='furious'] [data-expression='furious'] {
+	opacity: 1;
+}
+
+.mascot-caption {
+	display: block;
+	margin-top: 12px;
+	color: var(--mascot-ink);
+	font: 12px/1.8 var(--dojo-serif);
+	letter-spacing: 0.05em;
+}
+.mascot-hint {
+	display: block;
+	margin-top: 7px;
+	color: var(--faint);
+	font: 10px/1.8 var(--dojo-sans);
+	visibility: hidden;
+}
+[data-ready='true'] .mascot-hint {
+	visibility: visible;
+}
+.mascot-words {
+	position: absolute;
+	bottom: calc(100% + 2px);
+	left: 50%;
+	width: max-content;
+	max-width: 250px;
+	transform: translateX(-50%);
+	z-index: 2;
+	pointer-events: none;
+}
+.mascot-word {
+	position: relative;
+	display: block;
+	padding: 10px 15px;
+	border: 1px solid #ded4c7;
+	border-radius: 13px;
+	background: #fffdf9;
+	color: var(--mascot-ink);
+	font: 12px/1.7 var(--dojo-sans);
+	box-shadow: 0 4px 16px #493c2010;
+	animation: mascot-word 3.2s ease-out both;
+}
+.mascot-word::after {
+	content: '';
+	position: absolute;
+	width: 8px;
+	height: 8px;
+	bottom: -5px;
+	left: calc(50% - 4px);
+	transform: rotate(45deg);
+	background: inherit;
+	border-right: 1px solid #ded4c7;
+	border-bottom: 1px solid #ded4c7;
+}
+[data-mood='angry'],
+[data-mood='furious'] {
+	--mascot-ink: #a44535;
+}
+[data-mood='furious'] .mascot-word {
+	background: #fff1eb;
+}
+[data-mood='furious'] .mascot-art {
+	animation: mascot-huff 320ms ease-in-out 2;
+}
+
+.mascot-countdown {
+	position: absolute;
+	inset: calc(100% + 12px) -28px auto;
+	color: #a44535;
+	font-size: 11px;
+}
+.mascot-countdown p {
+	margin: 0 0 5px;
+}
+.mascot-countdown span {
+	font-variant-numeric: tabular-nums;
+}
+.text-button {
+	padding: 5px 10px;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-decoration: underline;
+	text-underline-offset: 4px;
+	cursor: pointer;
+}
+
+@keyframes mascot-word {
+	0% {
+		opacity: 1;
+		transform: translateY(4px);
+	}
+	12%,
+	70% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+}
+@keyframes mascot-huff {
+	0%,
+	100% {
+		transform: rotate(0);
+	}
+	25% {
+		transform: rotate(-2deg);
+	}
+	75% {
+		transform: rotate(2deg);
+	}
+}
+@media (max-width: 40rem) {
+	.mascot-caption {
+		font-size: 10px;
+		letter-spacing: 0;
+		margin-top: 4px;
+	}
+	.mascot-hint {
+		font-size: 9px;
+		max-width: 100px;
+		margin: 4px auto 0;
+	}
+	.mascot-words {
+		left: auto;
+		right: 0;
+		transform: none;
+		max-width: 170px;
+	}
+	.mascot-word::after {
+		left: auto;
+		right: 45px;
+	}
+	.mascot-word {
+		font-size: 10px;
+	}
+	.mascot-countdown {
+		inset-inline: -32px -5px;
+		font-size: 10px;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.mascot-art img {
+		transition: none;
+	}
+	[data-mood='furious'] .mascot-art {
+		animation: none;
+	}
+	.mascot-word {
+		animation: none;
+	}
+}

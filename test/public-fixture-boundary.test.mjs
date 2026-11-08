@@ -27,6 +27,7 @@ function fixtureCommandScripts() {
 			'check',
 			'build',
 			'test:worker',
+			'test:frontend',
 			'verify:fixture-boundary',
 			'verify:fixture-references',
 			'validate',
@@ -138,6 +139,12 @@ test('public fixture boundary rejects a command that assembles fixtures after wo
 	scripts.build = 'astro build && npm run content:fixtures';
 
 	assert.throws(() => assertFixtureCommands({ scripts }), /build must directly reassemble fixtures/u);
+});
+
+test('public fixture boundary rejects frontend tests that skip fixture preparation', () => {
+	const scripts = fixtureCommandScripts();
+	scripts['test:frontend'] = 'node --test test/d-meow-state.test.mjs';
+	assert.throws(() => assertFixtureCommands({ scripts }), /test:frontend must directly reassemble fixtures/u);
 });
 
 test('public fixture boundary rejects a build path that skips environment verification', () => {

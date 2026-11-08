@@ -2,10 +2,6 @@ import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import starlight from '@astrojs/starlight';
 
-import { publicSourceRevisionUrl } from './src/lib/public-build-config.mjs';
-
-const sourceRevisionUrl = publicSourceRevisionUrl();
-
 export default defineConfig({
 	output: 'server',
 	session: false,
@@ -18,7 +14,6 @@ export default defineConfig({
 			description: '面向类脑 Odysseia 社区的教程站。',
 			pagination: false,
 			customCss: ['./src/styles/reading.css'],
-			social: sourceRevisionUrl ? [{ icon: 'github', label: '网站源码（GitHub）', href: sourceRevisionUrl }] : [],
 			locales: {
 				root: {
 					label: '简体中文',
@@ -26,6 +21,7 @@ export default defineConfig({
 				},
 			},
 			components: {
+				Head: './src/components/ReadingHead.astro',
 				PageTitle: './src/components/ProtectedPageTitle.astro',
 			},
 			sidebar: [

@@ -1,0 +1,13 @@
+Use case: stylized-concept
+Asset type: one small website mascot illustration for a very minimal, refined Chinese tutorial community website.
+Input image 1: character identity and outfit reference, already isolated from a user-supplied screenshot. Use this reference to produce a newly drawn polished illustration, not a screenshot.
+
+Subject and identity invariants: the same cheerful chibi girl with a warm dark-brown chin-length bob, ochre-caramel hair tips, a single side braid on the viewer's right, a large muted coral-orange daisy ornament at the end of that braid, one small curved ahoge at the crown, round friendly face, closed smiling eyes, rosy cheeks, and a small pleased smile. Keep the white collared long-sleeve shirt, black tie, and brown V-neck knit sweater vest with subtle argyle detail. Preserve the reference's recognizable proportions, colors, expression, and personality. Nonsexual, modest outfit.
+
+Pose and composition: a single centered waist-up three-quarter portrait, with the face still oriented toward the viewer. Both small hands naturally cradle one plain small closed cream-colored book at chest/waist height, suitable for a welcoming tutorial-library character. Show the full head, hair ornament, elbows and the complete book with comfortable empty margin all around; no abrupt crop across hands. No additional subjects. The illustration must remain recognizable when displayed about 210 pixels wide on a webpage.
+
+Style: refined hand-drawn 2D Japanese chibi illustration, delicate but crisp warm-brown ink contours, restrained flat color and soft cel shading, quiet warm palette. Friendly and slightly mischievous, like the reference. Clear readable silhouette and carefully drawn hands. More polished linework than the reference while retaining the simple chibi design. Not photorealistic, not 3D, no glossy plastic, no glitter, no busy ornamental detail.
+
+Background: perfectly flat solid chroma green #00FF00 across the entire background, with no background objects, no gradient, no texture, no shadows, and no green lighting or green spill on the character. This flat green will be removed locally. Green must appear ONLY on the background, never inside clothing, the book, the character, or accessories. No white sticker border.
+
+Text: none. No lettering, signatures, logos, watermark, page, frame, chat interface, speech bubble, or website UI. The book cover is completely blank.

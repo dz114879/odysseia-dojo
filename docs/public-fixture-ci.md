@@ -103,8 +103,10 @@ content, or expose the VM through a tunnel.
          same page in the same Session shows no toast. A deliberately
          unavailable test write shows a neutral toast that keeps its retry and
          dismiss controls without blocking reading.
-   - [ ] The public header shows only the site name, because a fixture build
-         has no source revision URL and must render no GitHub icon.
+   - [ ] The public header shows the site name and `隐私说明 | 登录` navigation;
+         neither public nor tutorial headers show a GitHub source icon. The public
+         footer shows `Made by KKTsN with 💖` and `GitHub ↗`, linking to the public
+         repository in fixture builds or the immutable revision when configured.
 
 ## Evidence limits
 

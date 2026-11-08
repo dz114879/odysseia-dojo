@@ -16,6 +16,7 @@ const fixtureCommands = [
 	'check',
 	'build',
 	'test:worker',
+	'test:frontend',
 	'verify:fixture-boundary',
 	'verify:fixture-references',
 	'validate',

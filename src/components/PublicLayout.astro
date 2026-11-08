@@ -1,17 +1,18 @@
 ---
-import { Icon } from '@astrojs/starlight/components';
-
 import '../styles/public.css';
 import { publicSourceRevisionUrl } from '../lib/public-build-config.mjs';
+import SiteClosureGuard from './SiteClosureGuard.astro';
+import DMeowTheme from './DMeowTheme.astro';
 
 interface Props {
 	title: string;
 	description: string;
+	minimal?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, minimal = false } = Astro.props;
 const canonicalOrigin = import.meta.env.PUBLIC_CANONICAL_URL;
-const sourceRevisionUrl = publicSourceRevisionUrl(import.meta.env);
+const sourceRevisionUrl = publicSourceRevisionUrl(import.meta.env) ?? 'https://github.com/dz114879/odysseia-dojo';
 
 let canonicalUrl: string | undefined;
 if (canonicalOrigin) {
@@ -31,19 +32,42 @@ if (canonicalOrigin) {
 		<meta name="description" content={description} />
 		{canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 		<title>{title}</title>
+		<SiteClosureGuard />
+		<DMeowTheme />
 	</head>
 	<body>
-		<header class="public-header">
-			<a class="public-brand" href="/">类脑 Odysseia - 道馆挑战</a>
-			{sourceRevisionUrl && (
-				<a class="header-source-link" href={sourceRevisionUrl} aria-label="网站源码（GitHub）">
-					<Icon name="github" size="1.5rem" />
+		{!minimal && (
+			<>
+				<a class="skip-link" href="#main-content">
+					跳转到主要内容
 				</a>
-			)}
-		</header>
-		<slot />
-		<footer class="public-footer">
-			<p>Made by KKTsN with 💖</p>
-		</footer>
+				<header class="public-header">
+					<a class="public-brand" data-dojo-brand href="/" aria-label="类脑 Odysseia 首页">
+						类脑 <span>Odysseia</span>
+					</a>
+					<nav aria-label="公开导航">
+						<a href="/#privacy">隐私说明</a>
+						<a href="/login">登录</a>
+					</nav>
+				</header>
+			</>
+		)}
+		<div id="main-content" tabindex="-1">
+			<slot />
+		</div>
+		{!minimal && (
+			<footer class="public-footer">
+				<p>Made by KKTsN with 💖</p>
+				<a
+					class="footer-github-link"
+					href={sourceRevisionUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+					aria-label="在 GitHub 查看项目源码（新标签页）"
+				>
+					GitHub <span aria-hidden="true">↗</span>
+				</a>
+			</footer>
+		)}
 	</body>
 </html>

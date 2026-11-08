@@ -1,0 +1,84 @@
+---
+import PublicLayout from '../components/PublicLayout.astro';
+import { readSiteClosureCookie } from '../lib/site-closure.js';
+
+const closure = readSiteClosureCookie(Astro.request.headers.get('cookie'));
+const seconds = closure ? Math.max(0, Math.ceil((closure.reopensAt - Date.now()) / 1000)) : 60;
+const remaining = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+---
+
+<PublicLayout title="暂时闭馆 | 类脑 Odysseia" description="类脑娘正在休息，稍后自动重新开馆。" minimal>
+	<main class="closed-page">
+		<div class="closed-content">
+			<img src="/mascot/furious.webp" width="616" height="880" alt="气鼓鼓的类脑娘" />
+			<p class="eyebrow">ODYSSEIA · 暂时闭馆</p>
+			<h1>说了闭馆，就是闭馆。</h1>
+			<p class="closed-description">
+				类脑娘还在气头上。
+				<br />
+				先让她安静一会儿，再回来读书吧。
+			</p>
+			<p class="reopen-clock">
+				<span data-closure-remaining>{remaining}</span>
+				<span>后重新开馆</span>
+			</p>
+			<p class="closed-note">
+				刷新、换页也不会提前开门。
+				<br />
+				时间到了，会自动带你回首页。
+			</p>
+			<noscript>
+				<p>
+					<a href="/">时间到了？刷新检查是否已经开馆</a>
+				</p>
+			</noscript>
+		</div>
+	</main>
+</PublicLayout>
+
+<style>
+	.closed-page {
+		min-height: 100svh;
+		display: grid;
+		place-items: center;
+		padding: 40px 24px;
+		text-align: center;
+	}
+	.closed-content {
+		width: 100%;
+		max-width: 480px;
+	}
+	.closed-content > img {
+		width: 108px;
+		height: auto;
+		margin-bottom: 28px;
+	}
+	h1 {
+		font: 400 clamp(25px, 5vw, 36px)/1.6 var(--dojo-serif);
+		margin: 20px 0;
+	}
+	.closed-description {
+		color: var(--muted);
+		font-size: 13px;
+		line-height: 2;
+	}
+	.reopen-clock {
+		margin: 32px 0 22px;
+		display: grid;
+		gap: 6px;
+		color: var(--accent);
+	}
+	.reopen-clock span:first-child {
+		font: 400 38px/1.2 var(--dojo-latin);
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.08em;
+	}
+	.reopen-clock span:last-child,
+	.closed-note {
+		color: var(--faint);
+		font-size: 11px;
+		line-height: 1.9;
+	}
+</style>

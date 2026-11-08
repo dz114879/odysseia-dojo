@@ -1,0 +1,30 @@
+/* Locally served, OFL-licensed fonts. No third-party requests while reading. */
+@font-face {
+	font-family: 'Dojo Serif';
+	src: url('/fonts/noto-serif-sc-titles.ttf') format('truetype');
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Instrument Serif';
+	src: url('/fonts/instrument-serif-regular.ttf') format('truetype');
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Instrument Serif';
+	src: url('/fonts/instrument-serif-italic.ttf') format('truetype');
+	font-style: italic;
+	font-weight: 400;
+	font-display: swap;
+}
+
+:root {
+	--dojo-serif: 'Dojo Serif', 'Noto Serif SC', 'Songti SC', SimSun, serif;
+	--dojo-latin: 'Instrument Serif', Georgia, serif;
+	--dojo-sans: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}

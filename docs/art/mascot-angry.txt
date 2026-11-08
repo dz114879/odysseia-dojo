@@ -1,0 +1,7 @@
+Use case: precise-object-edit
+Asset type: expression variant of an existing website mascot, isolated raster cutout
+Input images: Image 1 is the edit target. Preserve this exact character and illustration.
+Primary request: Change ONLY the facial expression from smiling to visibly angry: sharply inward-slanting eyebrows above narrowed brown eyes, cheeks puffed in a pout, small downturned mouth. Cute anime indignation, clearly stronger than mild impatience.
+Constraints: Preserve her exact brown bob with caramel tips, ahoge, right-side braid and coral daisy hair ornament, white collared shirt, black tie, brown knit vest, cream book, both hands, pose, chibi proportions, warm brown linework and soft watercolor shading. Same front-facing head angle and same framing. No change to silhouette or outfit. Keep all hair, hands and book in frame. No extra objects or symbols.
+Scene/backdrop: Replace the entire background with perfectly flat chroma green #00FF00, with no shadows, gradient, texture, vignette, transparency or checkerboard. No green in the character. A little empty margin around the complete silhouette.
+Text: No text, no lettering, no speech bubbles, no watermark.
