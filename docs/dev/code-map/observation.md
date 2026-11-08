@@ -1,34 +1,41 @@
 # Browser observation map
 
-Use this map when changing the authenticated browser-observation flow. It
-records the current source owners and trust boundary; the [Worker test
+Browser observation is disabled for the V1.2 launch cutover. This map records
+the retained dormant helpers and their trust boundary; the [Worker test
 seam](../../worker-test-seam.md) owns the operational harness procedure.
 
 ## Source owners and stable entrypoints
 
-| Concern | Current owner | Stable entrypoint |
-| --- | --- | --- |
-| Observation HTTP handling, payload validation, trusted-context assembly, keyed hashing, and D1 persistence | [`src/lib/observation.ts`](../../../src/lib/observation.ts) | `recordFingerprintObservation()` |
-| Dynamic HTTP route | [`src/pages/api/fingerprint.ts`](../../../src/pages/api/fingerprint.ts) | `POST /api/fingerprint` |
-| Browser collection and protected-page trigger | [`src/lib/browser-observation.ts`](../../../src/lib/browser-observation.ts) | `collectBrowserObservation()` and `startBrowserObservation()` |
-| Controllable collection/posting flow | [`src/lib/observation-client.js`](../../../src/lib/observation-client.js) | `createObservationController()` |
-| Payload compatibility version | [`src/lib/observation-contract.js`](../../../src/lib/observation-contract.js) | `OBSERVATION_PAYLOAD_VERSION` |
-| IP normalization, prefixes, and versioned hash inputs | [`src/lib/observation-logic.js`](../../../src/lib/observation-logic.js) | `normalizeIp()`, `networkPrefix()`, and `hashObservationValue()` |
-| Browser collector configuration | [`src/lib/thumbmark-options.js`](../../../src/lib/thumbmark-options.js) and [`package.json`](../../../package.json) | `THUMBMARK_OPTIONS` and the exact npm package pin |
-| Observation schema | [`migrations/0002_create_fingerprint_observations.sql`](../../../migrations/0002_create_fingerprint_observations.sql) | D1 migration discovery through [`wrangler.jsonc`](../../../wrangler.jsonc) |
+| Concern                                                                                                    | Current owner                                                                                                         | Stable entrypoint                                                          |
+| ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Observation HTTP handling, payload validation, trusted-context assembly, keyed hashing, and D1 persistence | [`src/lib/observation.ts`](../../../src/lib/observation.ts)                                                           | `recordFingerprintObservation()`                                           |
+| Dynamic HTTP route                                                                                         | [`src/pages/api/fingerprint.ts`](../../../src/pages/api/fingerprint.ts)                                               | `POST /api/fingerprint`                                                    |
+| Browser collection and protected-page trigger                                                              | [`src/lib/browser-observation.ts`](../../../src/lib/browser-observation.ts)                                           | `collectBrowserObservation()` and `startBrowserObservation()`              |
+| Controllable collection/posting flow                                                                       | [`src/lib/observation-client.js`](../../../src/lib/observation-client.js)                                             | `createObservationController()`                                            |
+| Payload compatibility version                                                                              | [`src/lib/observation-contract.js`](../../../src/lib/observation-contract.js)                                         | `OBSERVATION_PAYLOAD_VERSION`                                              |
+| IP normalization, prefixes, and versioned hash inputs                                                      | [`src/lib/observation-logic.js`](../../../src/lib/observation-logic.js)                                               | `normalizeIp()`, `networkPrefix()`, and `hashObservationValue()`           |
+| Browser collector configuration                                                                            | [`src/lib/thumbmark-options.js`](../../../src/lib/thumbmark-options.js) and [`package.json`](../../../package.json)   | `THUMBMARK_OPTIONS` and the exact npm package pin                          |
+| Observation schema                                                                                         | [`migrations/0002_create_fingerprint_observations.sql`](../../../migrations/0002_create_fingerprint_observations.sql) | D1 migration discovery through [`wrangler.jsonc`](../../../wrangler.jsonc) |
 
 `ProtectedPageTitle.astro` is configured by Starlight for protected document
-pages. It renders [`ObservationToast.astro`](../../../src/components/ObservationToast.astro),
-which owns the toast container and calls `startBrowserObservation()` after the
-page loads. Neither component gates rendering, access, or navigation.
+pages and no longer imports or renders
+[`ObservationToast.astro`](../../../src/components/ObservationToast.astro).
+The retained toast component and browser collector have no active page entry;
+protected pages load no ThumbmarkJS code and send no `/api/fingerprint` requests.
 
-Protected documents are prerendered, so the current login marker cannot come
-from the page build. `applyProtectedAccessPolicy()` in
-[`src/lib/protected-access.ts`](../../../src/lib/protected-access.ts) adds
-`data-observation-session`, the verified Session `iat`, to the toast container
-of every protected HTML document response.
+`applyProtectedAccessPolicy()` in
+[`src/lib/protected-access.ts`](../../../src/lib/protected-access.ts) keeps the
+Session gate and private no-store responses without running the dormant
+`withObservationSessionMarker()` HTML rewriter.
+
+`POST /api/fingerprint` immediately returns `204 No Content` with
+`Cache-Control: no-store` without reading the body, verifying a Session, or
+calling `recordFingerprintObservation()`. Helpers, unit tests, and the existing
+D1 migration remain in place; scheduled retention still removes historical rows.
 
 ## Trust and persistence boundary
+
+The following describes retained helper behavior, not active collection.
 
 The browser controller sends only the allowlisted browser signals and the
 payload version to the same-origin route. Collection configuration enables the
@@ -61,7 +68,8 @@ produce an automated assessment of a reader.
 covers normalization, prefix, and keyed-hash vectors.
 [`test/observation-client.test.mjs`](../../../test/observation-client.test.mjs)
 uses a controllable collector and poster to cover allowlisting and retry states.
-The production-shaped HTTP and D1 coverage is in
-[`test/worker-harness.test.mjs`](../../../test/worker-harness.test.mjs). Run the
+The production-shaped HTTP and D1 coverage in
+[`test/worker-harness.test.mjs`](../../../test/worker-harness.test.mjs) verifies
+the disabled endpoint and absence of toast and session-marker injection. Run the
 maintained commands through the [tooling map](tooling.md), or use
 `npm run validate` for the full public validation set.

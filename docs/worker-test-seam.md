@@ -23,11 +23,15 @@ sessions;
 authentication/classification/routing failures; private cache headers and an
 authenticated-then-anonymous reuse attempt. The OAuth start/callback/logout,
 return-target, distinct failure-state, and D1 OAuth-activity checks remain at
-the same boundary. Authenticated observation requests cover server-derived
-context, no-store responses, per-Session D1 idempotence, and retry after a
-failed write. Quiz-eligibility requests cover dedicated-key authentication,
-strict request validation, the inclusive eight-day decision window, minimal
-no-store responses, read-only behavior, and D1 failure. The same isolated D1
+the same boundary, including fail-closed OAuth-activity writes: a D1 write
+failure redirects to `/discord-unavailable` without issuing a Session Cookie.
+`POST /api/fingerprint` returns `204 No Content` with `Cache-Control: no-store`
+without reading the body, verifying a Session, or writing to D1. Protected HTML
+contains no observation toast or injected observation-session marker.
+Quiz-eligibility requests cover dedicated-key authentication, strict request
+validation, the inclusive eight-day window on
+`auth_activity.last_successful_oauth_at`, minimal no-store responses, read-only
+behavior, and D1 failure. The same isolated D1
 binding seeds exact-boundary and skewed retention records, then invokes the
 deployed `scheduled()` entrypoint to prove
 the five-round bounded expiry cleanup and its redacted cap-reached signal
@@ -42,8 +46,10 @@ The OAuth routes and their D1 activity write are Astro `src/pages/api/**`
 endpoints, while `src/middleware.ts` applies the shared Session policy to
 Astro-rendered routes. The custom Worker handles the exact internal
 quiz-eligibility path before Astro so every method and content-type rejection
-uses the endpoint's fail-closed response contract. For other requests, with
-`assets.run_worker_first`, it invokes the shared protected-content policy before
+uses the endpoint's fail-closed response contract. The inert fingerprint POST is
+also dispatched directly to its route export, before Astro's Origin check can
+reject bodyless requests. All other routes retain that check. For other requests,
+with `assets.run_worker_first`, the Worker invokes the shared protected-content policy before
 delegating to the Astro Cloudflare handler. This is necessary because the
 adapter returns matching `ASSETS` before Astro middleware runs.
 
@@ -54,4 +60,4 @@ test process's `globalThis.fetch`. The OAuth tests replace that function with a
 strict local responder, so they model member, non-member, Guild pagination,
 refusal, and failure responses without network access. Harness runtime logs and
 the isolated D1 binding prove that access tokens, Cookies, Secrets, and full
-Discord responses do not persist or appear in the fail-open activity-write log.
+Discord responses do not persist or appear in the fail-closed activity-write log.

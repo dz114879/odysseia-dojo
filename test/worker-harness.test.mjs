@@ -140,26 +140,6 @@ function fingerprintPayload(overrides = {}) {
 	};
 }
 
-async function submitFingerprint(payload = fingerprintPayload(), options = {}) {
-	const cookie = options.cookie === undefined ? await signedSessionCookie() : options.cookie;
-	const headers = new Headers({
-		'content-type': 'application/json',
-		'user-agent': options.userAgent ?? 'FixtureBrowser/1.0',
-	});
-	if (cookie) headers.set('Cookie', cookie);
-	if (options.ip !== null) headers.set('cf-connecting-ip', options.ip ?? '203.0.113.45');
-
-	return harness.fetch('/api/fingerprint', {
-		method: 'POST',
-		headers,
-		body: JSON.stringify(payload),
-		cf: {
-			country: options.country ?? 'HK',
-			asn: options.asn ?? 13335,
-		},
-	});
-}
-
 async function observationCount(env) {
 	const result = await env.DB.prepare('SELECT COUNT(*) AS count FROM fingerprint_observations').first();
 	return result?.count;
@@ -176,6 +156,14 @@ async function seedEligibilityObservation(env, discordUserId, capturedAt, suffix
 			`eligibility-ip-${suffix}`,
 			capturedAt,
 		)
+		.run();
+}
+
+async function seedEligibilityLogin(env, discordUserId, verifiedAt) {
+	await env.DB.prepare(
+		'INSERT INTO auth_activity (discord_user_id, discord_username_snapshot, last_successful_oauth_at) VALUES (?1, ?2, ?3)',
+	)
+		.bind(discordUserId, 'fixture-member', verifiedAt)
 		.run();
 }
 
@@ -379,25 +367,20 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		assert.doesNotMatch(homeBody, /href="\/#rules"/u);
 		assert.match(homeBody, /<summary>查看完整隐私说明<\/summary>/u);
 		assert.match(homeBody, /<summary>查看教程署名、许可与内容边界<\/summary>/u);
-		assert.match(homeBody, /Discord 用户 ID、当时的用户名快照/u);
-		assert.match(homeBody, /不保存 Discord 授权令牌。/u);
-		assert.match(homeBody, /HMAC-SHA256/u);
-		assert.match(homeBody, /数据库里没有明文 IP，也没有明文 User-Agent。/u);
-		assert.match(homeBody, /不会只凭单一信号自动给你评分、处罚或封禁/u);
-		assert.match(homeBody, /茉莉只会把你的 Discord 用户 ID 发给网站/u);
-		assert.match(homeBody, /最近 8 天内有没有你的反作弊记录，只回答你现在能不能答题。/u);
-		assert.match(homeBody, /不会为这类查询另存查询时间、结果或审计记录。/u);
-		assert.match(homeBody, /哈希值、记录时间和人工调查内容都不会返回给茉莉/u);
-		assert.match(homeBody, /超过 90 天后进入每日清理范围/u);
-		assert.match(homeBody, /下一次成功清理/u);
-		assert.match(homeBody, /最多还会额外保留 7 天/u);
-		assert.match(homeBody, /数据托管在 Cloudflare，网站不承诺把它们存放在某个特定地区。/u);
-		assert.match(homeBody, /请通过社区联系/u);
-		assert.doesNotMatch(homeBody, /防代打/u);
-		assert.doesNotMatch(homeBody, /Session nonce/u);
-		assert.doesNotMatch(homeBody, /Time Travel/u);
-		assert.doesNotMatch(homeBody, /location hint/u);
-		assert.doesNotMatch(homeBody, /最多删除 100 条/u);
+		const privacy = homeDocument.querySelector('#privacy');
+		assert.ok(privacy, 'The homepage must include a privacy disclosure.');
+		const privacyText = privacy.textContent.replace(/\s+/gu, ' ');
+		assert.match(privacyText, /不保存 Discord 授权令牌/u);
+		assert.match(privacyText, /90\s*天/u);
+		assert.match(privacyText, /每日.*清理/u);
+		assert.match(privacyText, /Cloudflare D1/u);
+		assert.match(privacyText, /7\s*天/u);
+		assert.match(privacyText, /控制权/u);
+		assert.match(privacyText, /社区联系/u);
+		assert.match(privacyText, /提前删除/u);
+		assert.match(privacyText, /只会把你的 Discord 用户 ID 发给网站/u);
+		assert.match(privacyText, /只回答.*能不能答题/u);
+		assert.match(privacyText, /不会.*另存.*查询.*审计记录/u);
 		const navigation = homeDocument.querySelector('header nav[aria-label="公开导航"]');
 		assert.ok(navigation, 'Public header navigation must be present.');
 		assert.deepEqual(
@@ -428,6 +411,26 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		assert.ok(noticeIndex >= 0 && noticeIndex < loginButtonIndex, 'The notice must precede the OAuth button.');
 		assert.match(loginBody, /首页隐私说明/u);
 		assert.doesNotMatch(loginBody, /type="checkbox"/u);
+		const { document: loginDocument } = parseHTML(loginBody);
+		const loginNotice = loginDocument.querySelector('[aria-labelledby="login-notice-title"]');
+		assert.ok(loginNotice, 'The login page must include a pre-login privacy notice.');
+		assert.ok(loginNotice.querySelector('a[href="/#privacy"]'));
+		for (const disclosure of [privacy, loginNotice]) {
+			const text = disclosure.textContent.replace(/\s+/gu, ' ');
+			assert.match(text, /Discord 用户 ID/u);
+			assert.match(text, /用户名快照/u);
+			assert.match(text, /验证.{0,4}时间/u);
+			assert.match(text, /auth_activity/u);
+			assert.match(text, /社区成员/u);
+			assert.match(text, /茉莉/u);
+			assert.match(text, /8\s*天/u);
+			assert.match(text, /登录/u);
+			assert.doesNotMatch(
+				text,
+				/指纹|fingerprint|Canvas|WebGL|\bIP\b|\bUA\b|User-Agent|哈希|HMAC|SHA-?256|反作弊|代打|人工调查/iu,
+			);
+			assert.doesNotMatch(text, /闭馆|彩蛋|D喵|durvis|隐藏主题|localStorage|本地偏好/iu);
+		}
 
 		assert.match(await accessDenied.text(), /您不在类脑 ODYSSEIA 服务器，请先加入。/u);
 		assert.match(await cancelled.text(), /Discord 授权未完成，无法验证您的访问资格。/u);
@@ -500,6 +503,11 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		assert.deepEqual(storedActivity?.discord_username_snapshot, 'fixture-member');
 		assert.match(storedActivity?.last_successful_oauth_at ?? '', /^\d{4}-\d{2}-\d{2}T/u);
 		assert.doesNotMatch(JSON.stringify(storedActivity), /test-discord-access-token|dojo_session|test-session-secret/u);
+		const eligibility = await requestQuizEligibility();
+		assert.equal(eligibility.status, 200);
+		assert.equal(eligibility.headers.get('cache-control'), 'no-store');
+		assert.deepEqual(await eligibility.json(), { eligible: true });
+		assert.equal(await observationCount(env), 0);
 	});
 
 	test('rejects missing or mismatched OAuth state before any Discord request', async () => {
@@ -582,17 +590,29 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		}
 	});
 
-	test('keeps a verified member signed in when only the OAuth activity upsert fails', async () => {
-		const env = await worker.getEnv();
-		await env.DB.prepare('DROP TABLE IF EXISTS auth_activity').run();
+	test('withholds a new Session and clears OAuth state when recording a verified login fails', async () => {
+		const env = await applyD1Migrations();
+		await env.DB.prepare(
+			`CREATE TRIGGER force_auth_activity_insert_failure
+				 BEFORE INSERT ON auth_activity
+				 BEGIN
+					SELECT RAISE(ABORT, 'fixture OAuth activity write failure');
+				 END`,
+		).run();
 		const start = await beginOAuth();
 		harness.clearLogs();
 		const response = await withDiscordResponder(memberResponder(), () =>
 			finishOAuth(start, { code: 'fixture-authorization-code' }),
 		);
 		assert.equal(response.status, 302);
-		assert.equal(locationPath(response), '/docs/tutorials/');
-		assert.ok(responseCookies(response).some((cookie) => cookie.startsWith('dojo_session=')));
+		assert.equal(locationPath(response), '/discord-unavailable');
+		assert.equal(response.headers.get('cache-control'), 'no-store');
+		assert.match(responseCookie(response, 'dojo_oauth_state'), /Max-Age=0/u);
+		assert.equal(
+			responseCookies(response).some((cookie) => cookie.startsWith('dojo_session=')),
+			false,
+		);
+		assert.equal(await activityCount(env, 'auth_activity'), 0);
 		const errors = harness
 			.getLogs()
 			.filter((log) => log.level === 'error')
@@ -619,97 +639,89 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		assert.match(cookie, /Max-Age=0/u);
 	});
 
-	test('records a single authenticated observation from trusted server context', async () => {
-		const env = await applyD1Migrations();
-		const first = await submitFingerprint();
-		assert.equal(first.status, 204);
-		assert.equal(first.headers.get('cache-control'), 'no-store');
-		assert.equal(await first.text(), '');
-
-		const row = await env.DB.prepare(
-			`SELECT discord_user_id, discord_username_snapshot, session_id_hash,
-				 browser_fingerprint_hash, canvas_hash, webgl_hash, user_agent_hash,
-				 platform, timezone, screen_resolution, language, ip_hash, ip_prefix_hash,
-				 country, asn, payload_version, hash_key_version, captured_at
-				 FROM fingerprint_observations`,
-		).first();
-		const { captured_at: capturedAt, ...storedObservation } = row ?? {};
-		assert.deepEqual(storedObservation, {
-			discord_user_id: '123456789012345678',
-			discord_username_snapshot: 'fixture-member',
-			session_id_hash: '693a16da541907663959787e855b6b62c35681eb24e6768de8e296c1ddc95aac',
-			browser_fingerprint_hash: '80a34e9a54d59c71dffea5a98b9ff3be51e3c04486c048da6df8bfa86d49bcbc',
-			canvas_hash: '0ccad888e994438b6f8e8ad354b9422687955df3636e06cbfcf23fb9013a3c8c',
-			webgl_hash: 'ed8c51e4774b3e4de8f70ec623c6baceacdb3165e8e7e7b8dd598f614499ca50',
-			user_agent_hash: 'a6f9d39f3f9ad84db619b1df458c882b86c6ef73a700246b1cf7d2302688a15c',
-			platform: 'FixtureOS',
-			timezone: 'Asia/Hong_Kong',
-			screen_resolution: '1920x1080',
-			language: 'zh-CN',
-			ip_hash: '8e92c20dee08a0072490306807fd2e9caeee87f51fbe65b5899945bab3cc19a0',
-			ip_prefix_hash: 'bbf66f093fcad99656736f74a2b11247454720554e0aeabb62047587d9e8cf53',
-			country: 'HK',
-			asn: 13335,
-			payload_version: 1,
-			hash_key_version: 1,
+	test('retains Astro Origin protection on other POST routes', async () => {
+		const response = await harness.fetch('/api/auth/logout', {
+			method: 'POST',
+			headers: { Origin: 'https://other.example', 'Content-Type': 'application/x-www-form-urlencoded' },
+			body: 'ignored=value',
 		});
-		assert.match(capturedAt ?? '', /^\d{4}-\d{2}-\d{2}T/u);
-
-		const duplicate = await submitFingerprint();
-		assert.equal(duplicate.status, 204);
-		assert.equal(duplicate.headers.get('cache-control'), 'no-store');
-		assert.equal(await observationCount(env), 1);
-
-		const oauthActivity = await env.DB.prepare('SELECT discord_user_id FROM auth_activity').all();
-		assert.deepEqual(oauthActivity.results, []);
+		assert.equal(response.status, 403);
+		assert.equal(response.headers.get('set-cookie'), null);
 	});
 
-	test('rejects client-controlled trusted fields and missing server context without writing an observation', async () => {
+	test('short-circuits observation requests without a Session, body validation, or D1 writes', async () => {
 		const env = await applyD1Migrations();
-		const unauthenticated = await submitFingerprint(fingerprintPayload(), { cookie: null });
-		assert.equal(unauthenticated.status, 401);
-		assert.equal(unauthenticated.headers.get('cache-control'), 'no-store');
-
-		const spoofed = await submitFingerprint(
-			fingerprintPayload({
-				discordUserId: 'forged-discord-id',
-				ip: '198.51.100.9',
-				userAgent: 'forged-user-agent',
-				capturedAt: '2000-01-01T00:00:00.000Z',
-			}),
-		);
-		assert.equal(spoofed.status, 400);
-		assert.equal(spoofed.headers.get('cache-control'), 'no-store');
-
-		const unusableTrustedIp = await submitFingerprint(fingerprintPayload(), { ip: 'not-a-valid-ip' });
-		assert.equal(unusableTrustedIp.status, 503);
-		assert.equal(unusableTrustedIp.headers.get('cache-control'), 'no-store');
+		const anonymous = await harness.fetch('/api/fingerprint', { method: 'POST' });
+		assert.equal(anonymous.status, 204);
+		assert.equal(anonymous.headers.get('cache-control'), 'no-store');
+		assert.equal(await anonymous.text(), '');
 		assert.equal(await observationCount(env), 0);
+		await seedEligibilityObservation(env, TEST_QUIZ_DISCORD_USER_ID, '2026-01-01T00:00:00.000Z', 'dormant');
+		const cookie = await signedSessionCookie();
+		const requests = [
+			{ name: 'authenticated and bodyless', options: { headers: { Cookie: cookie } } },
+			{ name: 'malformed Session', options: { headers: { Cookie: 'dojo_session=%' } } },
+			{
+				name: 'cross-origin form submission',
+				options: {
+					headers: { Origin: 'https://other.example', 'content-type': 'application/x-www-form-urlencoded' },
+					body: 'ignored=value',
+				},
+			},
+			{
+				name: 'malformed JSON',
+				options: { headers: { 'content-type': 'application/json' }, body: '{' },
+			},
+			{
+				name: 'unsupported media type and oversized body',
+				options: { headers: { 'content-type': 'text/plain' }, body: 'x'.repeat(32_768) },
+			},
+			{
+				name: 'valid former observation payload',
+				options: {
+					headers: {
+						Cookie: cookie,
+						'content-type': 'application/json',
+						'user-agent': 'FixtureBrowser/1.0',
+						'cf-connecting-ip': '203.0.113.45',
+					},
+					body: JSON.stringify(fingerprintPayload()),
+					cf: { country: 'HK', asn: 13335 },
+				},
+			},
+			{
+				name: 'client-controlled trusted fields and invalid server context',
+				options: {
+					headers: { Cookie: cookie, 'content-type': 'application/json', 'cf-connecting-ip': 'invalid' },
+					body: JSON.stringify(fingerprintPayload({ discordUserId: 'forged-discord-id', ip: '198.51.100.9' })),
+				},
+			},
+		];
+
+		for (const { name, options } of requests) {
+			const response = await harness.fetch('/api/fingerprint', { method: 'POST', ...options });
+			assert.equal(response.status, 204, name);
+			assert.equal(response.headers.get('cache-control'), 'no-store', name);
+			assert.equal(response.headers.get('set-cookie'), null, name);
+			assert.equal(await response.text(), '', name);
+			assert.equal(await observationCount(env), 1, name);
+			assert.equal(await activityCount(env, 'auth_activity'), 0, name);
+		}
+		const historical = await env.DB.prepare('SELECT captured_at FROM fingerprint_observations').first();
+		assert.deepEqual(historical, { captured_at: '2026-01-01T00:00:00.000Z' });
 	});
 
-	test('keeps a failed observation write retryable for the same Session', async () => {
+	test('short-circuits observation requests even when D1 tables are unavailable', async () => {
 		const env = await applyD1Migrations();
-		await env.DB.prepare(
-			`CREATE TRIGGER force_observation_insert_failure
-				 BEFORE INSERT ON fingerprint_observations
-				 BEGIN
-					SELECT RAISE(ABORT, 'fixture observation write failure');
-				 END`,
-		).run();
-
-		const failed = await submitFingerprint();
-		assert.equal(failed.status, 503);
-		assert.equal(failed.headers.get('cache-control'), 'no-store');
-		assert.equal(await observationCount(env), 0);
-
-		await env.DB.prepare('DROP TRIGGER force_observation_insert_failure').run();
-		const retry = await submitFingerprint();
-		assert.equal(retry.status, 204);
-		assert.equal(retry.headers.get('cache-control'), 'no-store');
-		assert.equal(await observationCount(env), 1);
+		await env.DB.prepare('DROP TABLE fingerprint_observations').run();
+		await env.DB.prepare('DROP TABLE auth_activity').run();
+		const response = await harness.fetch('/api/fingerprint', { method: 'POST' });
+		assert.equal(response.status, 204);
+		assert.equal(response.headers.get('cache-control'), 'no-store');
+		assert.equal(await response.text(), '');
 	});
 
-	test('returns the minimal missing-observation eligibility decision', async () => {
+	test('returns the compatible missing-login eligibility decision without recording a query', async () => {
 		const env = await applyD1Migrations();
 		const response = await requestQuizEligibility({ contentType: 'application/json; charset=utf-8' });
 
@@ -718,6 +730,7 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		assert.match(response.headers.get('content-type') ?? '', /^application\/json/u);
 		assert.equal(await response.text(), '{"eligible":false,"reason":"fingerprint_missing"}');
 		assert.equal(await observationCount(env), 0);
+		assert.equal(await activityCount(env, 'auth_activity'), 0);
 	});
 
 	test('rejects missing and incorrect Bearer credentials before D1 access', async () => {
@@ -811,45 +824,44 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		}
 	});
 
-	test('uses the server eight-day window and excludes future observations', async () => {
+	test('uses the server eight-day login window and ignores dormant fingerprint records', async () => {
 		const env = await applyD1Migrations();
 		const now = Date.now();
 		const day = 24 * 60 * 60 * 1_000;
-		const expiredUserId = '223456789012345678';
-		const futureUserId = '323456789012345678';
-		const mixedUserId = '423456789012345678';
-
-		await seedEligibilityObservation(
-			env,
-			TEST_QUIZ_DISCORD_USER_ID,
-			new Date(now - 8 * day + 60_000).toISOString(),
-			'current',
-		);
-		await seedEligibilityObservation(env, expiredUserId, new Date(now - 8 * day - 60_000).toISOString(), 'expired');
-		await seedEligibilityObservation(env, futureUserId, new Date(now + 60_000).toISOString(), 'future');
-		await seedEligibilityObservation(env, mixedUserId, new Date(now - 2 * day).toISOString(), 'mixed-current');
-		await seedEligibilityObservation(env, mixedUserId, new Date(now - day).toISOString(), 'mixed-latest-current');
-		await seedEligibilityObservation(env, mixedUserId, new Date(now + day).toISOString(), 'mixed-future');
-
-		const eligible = await requestQuizEligibility();
-		const expired = await requestQuizEligibility({ body: JSON.stringify({ discordUserId: expiredUserId }) });
-		const future = await requestQuizEligibility({ body: JSON.stringify({ discordUserId: futureUserId }) });
-		const mixed = await requestQuizEligibility({ body: JSON.stringify({ discordUserId: mixedUserId }) });
-
-		for (const response of [eligible, expired, future, mixed]) {
-			assert.equal(response.status, 200);
-			assert.equal(response.headers.get('cache-control'), 'no-store');
+		// Real Worker requests use a moving clock; exact inclusive endpoints are covered by the fixed-clock unit seam.
+		const fixtures = [
+			{ discordUserId: TEST_QUIZ_DISCORD_USER_ID, verifiedAt: now - 8 * day + 60_000, eligible: true },
+			{ discordUserId: '223456789012345678', verifiedAt: now - 8 * day - 60_000, eligible: false },
+			{ discordUserId: '323456789012345678', verifiedAt: now + 60_000, eligible: false },
+			{ discordUserId: '423456789012345678', verifiedAt: now, eligible: true },
+			{ discordUserId: '523456789012345678', eligible: false },
+		];
+		for (const { discordUserId, verifiedAt, eligible } of fixtures) {
+			if (verifiedAt !== undefined) {
+				await seedEligibilityLogin(env, discordUserId, new Date(verifiedAt).toISOString());
+			}
+			if (!eligible) {
+				await seedEligibilityObservation(env, discordUserId, new Date(now).toISOString(), discordUserId);
+			}
 		}
-		assert.equal(await eligible.text(), '{"eligible":true}');
-		assert.equal(await expired.text(), '{"eligible":false,"reason":"fingerprint_missing"}');
-		assert.equal(await future.text(), '{"eligible":false,"reason":"fingerprint_missing"}');
-		assert.equal(await mixed.text(), '{"eligible":true}');
-		assert.equal(await observationCount(env), 6);
+
+		for (const { discordUserId, eligible } of fixtures) {
+			const response = await requestQuizEligibility({ body: JSON.stringify({ discordUserId }) });
+			assert.equal(response.status, 200, discordUserId);
+			assert.equal(response.headers.get('cache-control'), 'no-store', discordUserId);
+			assert.deepEqual(
+				await response.json(),
+				eligible ? { eligible: true } : { eligible: false, reason: 'fingerprint_missing' },
+				discordUserId,
+			);
+		}
+		assert.equal(await activityCount(env, 'auth_activity'), 4);
+		assert.equal(await observationCount(env), 3);
 	});
 
 	test('returns a generic non-cacheable service failure when D1 is unavailable', async () => {
 		const env = await applyD1Migrations();
-		await env.DB.prepare('DROP TABLE fingerprint_observations').run();
+		await env.DB.prepare('DROP TABLE auth_activity').run();
 		harness.clearLogs();
 
 		const response = await requestQuizEligibility();
@@ -981,6 +993,26 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		assert.equal(extension.status, 200);
 		assert.equal(outdated.status, 200);
 		assert.equal(resourcePage.status, 200);
+		const scriptPaths = new Set();
+		for (const response of [tutorial, extension, outdated, resourcePage]) {
+			assert.equal(response.headers.get('cache-control'), 'private, no-store, max-age=0');
+			const html = await response.clone().text();
+			assert.doesNotMatch(html, /data-observation-(?:toast|retry|session)|thumbmark|\/api\/fingerprint/iu);
+			const { document } = parseHTML(html);
+			for (const element of document.querySelectorAll('script[src], link[rel="modulepreload"]')) {
+				scriptPaths.add(element.getAttribute('src') ?? element.getAttribute('href'));
+			}
+		}
+		for (const path of scriptPaths) {
+			assert.ok(path, 'Client script references must have a URL.');
+			const script = await harness.fetch(path, { headers });
+			assert.equal(script.status, 200, path);
+			assert.doesNotMatch(
+				await script.text(),
+				/thumbmark|\/api\/fingerprint|data-observation-(?:toast|session)/iu,
+				path,
+			);
+		}
 
 		const tutorialBody = await tutorial.text();
 		assert.match(tutorialBody, /<html lang="zh-CN"/u);
@@ -999,9 +1031,6 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		const { document: tutorialDocument } = parseHTML(tutorialBody);
 		assert.equal(tutorialDocument.querySelector('header .header-source-link, header a[href*="github.com"]'), null);
 		assert.match(tutorialBody, /data-content-category="tutorial"/u);
-		assert.match(tutorialBody, /data-observation-toast/u);
-		assert.match(tutorialBody, /data-observation-retry/u);
-		assert.match(tutorialBody, new RegExp(`data-observation-session="${sessionIssuedAt}"`, 'u'));
 		assert.doesNotMatch(tutorialBody, /重新记录防代打观测/u);
 		assert.equal([...tutorialBody.matchAll(/<h1(?:\s|>)/gu)].length, 1);
 		assert.doesNotMatch(tutorialBody, /基础教程属于答题范围/u);

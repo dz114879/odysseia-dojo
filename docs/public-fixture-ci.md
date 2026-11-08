@@ -98,11 +98,9 @@ content, or expose the VM through a tunnel.
          background material expands and collapses.
    - [ ] A Pagefind query returns fixture-only Chinese, product-name, acronym,
          and optional-details results through the local Worker.
-   - [ ] The authenticated fixture page shows a short self-dismissing
-         observation success toast once for that test Session; reloading the
-         same page in the same Session shows no toast. A deliberately
-         unavailable test write shows a neutral toast that keeps its retry and
-         dismiss controls without blocking reading.
+   - [ ] The authenticated fixture page remains readable without an observation
+         toast. Loading or reloading it loads no ThumbmarkJS code and sends no
+         request to `/api/fingerprint`.
    - [ ] The public header shows the site name and `隐私说明 | 登录` navigation;
          neither public nor tutorial headers show a GitHub source icon. The public
          footer shows `Made by KKTsN with 💖` and `GitHub ↗`, linking to the public

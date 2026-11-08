@@ -1,6 +1,4 @@
 ---
-import ObservationToast from './ObservationToast.astro';
-
 const { category, isOutdated, title } = Astro.locals.starlightRoute.entry.data;
 const categoryLabel = category === 'tutorial' ? '基础教程' : '扩展阅读';
 ---
@@ -8,16 +6,12 @@ const categoryLabel = category === 'tutorial' ? '基础教程' : '扩展阅读';
 <div class="dojo-doc-heading" data-content-category={category}>
 	<p class="dojo-doc-category">{categoryLabel}</p>
 	<h1 id="_top">{title}</h1>
-	{
-		isOutdated && (
-			<aside class="dojo-outdated-notice" data-outdated-notice role="note">
-					本文部分内容可能已经过时。
-			</aside>
-		)
-	}
+	{isOutdated && (
+		<aside class="dojo-outdated-notice" data-outdated-notice role="note">
+			本文部分内容可能已经过时。
+		</aside>
+	)}
 </div>
-
-<ObservationToast />
 
 <style>
 	@layer starlight.core {

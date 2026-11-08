@@ -134,20 +134,19 @@ export async function checkQuizEligibility(request: Request, env: QuizEligibilit
 	if ('failureStatus' in parsedRequest) return errorResponse(parsedRequest.failureStatus);
 	const { payload } = parsedRequest;
 	const window = quizEligibilityWindow(Date.now());
-	let observation: { captured_at: string } | null;
+	let authActivity: { last_successful_oauth_at: string } | null;
 	try {
-		observation = await env.DB.prepare(
-			`SELECT captured_at
-				 FROM fingerprint_observations
-				 WHERE discord_user_id = ?1 AND captured_at >= ?2 AND captured_at <= ?3
-				 ORDER BY captured_at DESC
+		authActivity = await env.DB.prepare(
+			`SELECT last_successful_oauth_at
+				 FROM auth_activity
+				 WHERE discord_user_id = ?1 AND last_successful_oauth_at >= ?2 AND last_successful_oauth_at <= ?3
 				 LIMIT 1`,
 		)
 			.bind(payload.discordUserId, window.earliest, window.latest)
-			.first<{ captured_at: string }>();
+			.first<{ last_successful_oauth_at: string }>();
 	} catch {
 		return errorResponse(503);
 	}
 
-	return eligibilityResponse(observation !== null);
+	return eligibilityResponse(authActivity !== null);
 }

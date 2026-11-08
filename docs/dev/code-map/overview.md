@@ -36,16 +36,20 @@ behavior, and local-mode constraints are maintained in the
 
 The deployed request path starts at [`src/worker.ts`](../../../src/worker.ts).
 It dispatches the authenticated quiz-eligibility API to
-[`src/lib/quiz-eligibility.ts`](../../../src/lib/quiz-eligibility.ts), then
-applies the shared protected-content policy before delegating other requests to
-Astro's Cloudflare handler.
+[`src/lib/quiz-eligibility.ts`](../../../src/lib/quiz-eligibility.ts), which
+checks the eight-day window on `auth_activity.last_successful_oauth_at`.
+The inert fingerprint POST is dispatched directly to its route export before
+Astro's Origin check; other routes retain the check.
+For other requests, the Worker applies the shared protected-content policy
+before delegating to Astro's Cloudflare handler.
 [`src/middleware.ts`](../../../src/middleware.ts) applies that same policy to
 Astro-rendered routes. OAuth endpoint and Session ownership live below
 [`src/pages/api/auth/`](../../../src/pages/api/auth/); the detailed owner and
-test-seam map is [request and access](request-access.md). The authenticated
-[`/api/fingerprint`](../../../src/pages/api/fingerprint.ts) route delegates
-observation handling to [`src/lib/observation.ts`](../../../src/lib/observation.ts);
-its browser and persistence owners are mapped in [browser observation](observation.md).
+test-seam map is [request and access](request-access.md).
+[`POST /api/fingerprint`](../../../src/pages/api/fingerprint.ts) returns
+`204 No Content` with `Cache-Control: no-store` without reading the body,
+verifying a Session, or writing to D1. Retained dormant browser and persistence
+owners are mapped in [browser observation](observation.md).
 
 ## Build and validation flow
 
@@ -63,7 +67,7 @@ The D1 schema migrations are
 [`migrations/0001_create_auth_activity.sql`](../../../migrations/0001_create_auth_activity.sql)
 for the OAuth callback's `auth_activity` upsert and
 [`migrations/0002_create_fingerprint_observations.sql`](../../../migrations/0002_create_fingerprint_observations.sql)
-for per-Session observations. The corresponding source and test seams remain
-separate; see [request and access](request-access.md) and
+for historical per-Session observations; collection is disabled. The corresponding
+source and test seams remain separate; see [request and access](request-access.md) and
 [browser observation](observation.md). Daily removal and manual account-admin
 operations are owned by the [data-retention runbook](../../data-retention-and-investigation.md).

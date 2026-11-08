@@ -57,7 +57,7 @@ function rejectedProtectedRequest(request: Request, kind: ProtectedRequestKind):
 async function authenticateProtectedRequest(
 	request: Request,
 	sessionSecret: string,
-	kind: ProtectedRequestKind | undefined
+	kind: ProtectedRequestKind | undefined,
 ): Promise<{ rejection?: Response; claims?: SessionClaims }> {
 	if (!kind) return {};
 
@@ -68,6 +68,7 @@ async function authenticateProtectedRequest(
 	}
 }
 
+/* Retained dormant while observation is disabled.
 function withObservationSessionMarker(response: Response, sessionIssuedAt: number | undefined): Response {
 	if (typeof sessionIssuedAt !== 'number') return response;
 	if (!(response.headers.get('content-type') ?? '').includes('text/html')) return response;
@@ -81,6 +82,7 @@ function withObservationSessionMarker(response: Response, sessionIssuedAt: numbe
 		})
 		.transform(response);
 }
+*/
 
 function privateProtectedResponse(kind: ProtectedRequestKind | undefined, response: Response): Response {
 	if (!kind) return response;
@@ -104,7 +106,7 @@ function unavailableProtectedRequest(): Response {
 export async function applyProtectedAccessPolicy(
 	request: Request,
 	sessionSecret: string,
-	continueRequest: () => Promise<Response>
+	continueRequest: () => Promise<Response>,
 ): Promise<Response> {
 	let kind: ProtectedRequestKind | undefined;
 	try {
@@ -113,12 +115,11 @@ export async function applyProtectedAccessPolicy(
 		return unavailableProtectedRequest();
 	}
 
-	const { rejection, claims } = await authenticateProtectedRequest(request, sessionSecret, kind);
+	const { rejection } = await authenticateProtectedRequest(request, sessionSecret, kind);
 	if (rejection) return rejection;
 
 	try {
-		let response = await continueRequest();
-		if (kind === 'document') response = withObservationSessionMarker(response, claims?.iat);
+		const response = await continueRequest();
 		return privateProtectedResponse(kind, response);
 	} catch (error) {
 		if (kind) return unavailableProtectedRequest();

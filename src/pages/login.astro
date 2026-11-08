@@ -6,10 +6,7 @@ const oauthUrl = new URL('/api/auth/discord', Astro.url);
 if (requestedReturnTo) oauthUrl.searchParams.set('returnTo', requestedReturnTo);
 ---
 
-<PublicLayout
-	title="登录 | 类脑 Odysseia - 道馆挑战"
-	description="Discord 登录前的数据处理说明。"
->
+<PublicLayout title="登录 | 类脑 Odysseia - 道馆挑战" description="Discord 登录前的数据处理说明。">
 	<main class="public-shell narrow-shell">
 		<section aria-labelledby="login-title">
 			<p class="eyebrow">受保护教程阅读</p>
@@ -17,25 +14,30 @@ if (requestedReturnTo) oauthUrl.searchParams.set('returnTo', requestedReturnTo);
 			<div class="notice notice-warning" role="note" aria-labelledby="login-notice-title">
 				<h2 id="login-notice-title">登录前请先了解</h2>
 				<p>
-					为确认社区成员资格，登录会使用 Discord 身份信息。成功验证并加载受保护教程后，网站会尝试收集有限的反作弊浏览器与网络信号，并仅用于人工调查关联线索。
+					登录会通过 Discord 身份验证确认你的社区成员资格，并保存 Discord 用户
+					ID、用户名快照和成功验证时间（auth_activity），用于教程访问资格和茉莉答题开始时的 8 天登录资格查询。
 				</p>
 				<p>
-					这些信号并不用于单一自动评分、处罚或封禁；完整的收集内容、哈希处理、保留期限和删除渠道见<a href="/#privacy">首页隐私说明</a>。
+					登录验证记录超过 90
+					天后进入每日清理范围；你也可以在验证账号控制权后通过社区联系，查询或申请提前删除。完整的保留期限和删除说明见
+					<a href="/#privacy">首页隐私说明</a>。
 				</p>
 			</div>
-				<a class="button" data-discord-login href={`${oauthUrl.pathname}${oauthUrl.search}`}>使用 Discord 登录</a>
-				<p class="muted">仅请求 Discord 身份和服务器列表，用于确认成员资格。</p>
-			</section>
-		</main>
-		<script>
-			const loginLink = document.querySelector('[data-discord-login]');
-			const returnTo = new URLSearchParams(window.location.search).get('returnTo');
-			if (loginLink instanceof HTMLAnchorElement && returnTo && window.location.hash) {
-				const target = new URL(returnTo, window.location.origin);
-				target.hash = window.location.hash;
-				const oauth = new URL(loginLink.href);
-				oauth.searchParams.set('returnTo', `${target.pathname}${target.search}${target.hash}`);
-				loginLink.href = oauth.toString();
-			}
-		</script>
+			<a class="button" data-discord-login href={`${oauthUrl.pathname}${oauthUrl.search}`}>
+				使用 Discord 登录
+			</a>
+			<p class="muted">仅请求 Discord 身份和服务器列表，用于确认成员资格。</p>
+		</section>
+	</main>
+	<script>
+		const loginLink = document.querySelector('[data-discord-login]');
+		const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+		if (loginLink instanceof HTMLAnchorElement && returnTo && window.location.hash) {
+			const target = new URL(returnTo, window.location.origin);
+			target.hash = window.location.hash;
+			const oauth = new URL(loginLink.href);
+			oauth.searchParams.set('returnTo', `${target.pathname}${target.search}${target.hash}`);
+			loginLink.href = oauth.toString();
+		}
+	</script>
 </PublicLayout>

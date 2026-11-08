@@ -19,14 +19,13 @@ import { issueSession, sessionCookie } from '../../../lib/session';
 export const prerender = false;
 
 async function recordAuthActivity(discordUserId: string, discordUsername: string): Promise<void> {
-	await env.DB
-		.prepare(
-			`INSERT INTO auth_activity (discord_user_id, discord_username_snapshot, last_successful_oauth_at)
+	await env.DB.prepare(
+		`INSERT INTO auth_activity (discord_user_id, discord_username_snapshot, last_successful_oauth_at)
 			 VALUES (?, ?, ?)
 			 ON CONFLICT(discord_user_id) DO UPDATE SET
 			 discord_username_snapshot = excluded.discord_username_snapshot,
-			 last_successful_oauth_at = excluded.last_successful_oauth_at`
-		)
+			 last_successful_oauth_at = excluded.last_successful_oauth_at`,
+	)
 		.bind(discordUserId, discordUsername, new Date().toISOString())
 		.run();
 }
@@ -57,6 +56,7 @@ export const GET: APIRoute = async ({ request }) => {
 		await recordAuthActivity(authentication.identity.discordUserId, authentication.identity.discordUsername);
 	} catch {
 		console.error('Unable to record OAuth activity.');
+		return unavailableOAuth();
 	}
 
 	try {
