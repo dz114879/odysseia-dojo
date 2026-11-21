@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createMascotController, MASCOT_CLOSE_DELAY_MS, MASCOT_COOLDOWN_MS } from '../src/lib/mascot-controller.js';
+import {
+	createMascotController,
+	defaultMascotCaption,
+	MASCOT_CLOSE_DELAY_MS,
+	MASCOT_COOLDOWN_MS,
+} from '../src/lib/mascot-controller.js';
 
 function fixture() {
 	let time = 0;
@@ -164,4 +169,49 @@ test('the persistence hook runs exactly once on the first furious poke', () => {
 	for (let i = 0; i < 20; i++) f.click();
 	assert.deepEqual(deadlines, [9000]);
 	f.dispose();
+});
+
+test('time-of-day idle caption greets late-night and early-morning readers while keeping daytime default', () => {
+	assert.equal(defaultMascotCaption(new Date(2026, 7, 26, 2, 15).getTime()), '这么晚还在看教程呀，早点休息哦。');
+	assert.equal(defaultMascotCaption(new Date(2026, 7, 26, 6, 30).getTime()), '早安，趁安静翻两页书吧。');
+	assert.equal(defaultMascotCaption(new Date(2026, 7, 26, 14, 0).getTime()), '慢慢看，我在这里。');
+	assert.equal(defaultMascotCaption(new Date(2026, 7, 26, 23, 30).getTime()), '夜深了，看完这一节记得休息。');
+});
+
+test('post-closure grudge starts annoyed, gives sharp opening replies, and forgives after cooldown', () => {
+	let forgiven = 0;
+	let time = 0;
+	let nextId = 0;
+	const timers = new Map();
+	const replies = [];
+	const controller = createMascotController({
+		now: () => time,
+		schedule: (callback, delay) => {
+			const id = ++nextId;
+			timers.set(id, { at: time + delay, callback });
+			return id;
+		},
+		cancel: (id) => timers.delete(id),
+		onReply: (text) => replies.push(text),
+		onForgive: () => forgiven++,
+	});
+
+	controller.restoreGrudge();
+	assert.deepEqual(controller.snapshot(), { clicks: 0, mood: 'annoyed', phase: 'idle', secondsRemaining: 0 });
+	controller.click();
+	assert.equal(controller.snapshot().mood, 'annoyed');
+	assert.match(replies[0], /刚把门打开/u);
+	controller.click();
+	controller.click();
+	assert.equal(controller.snapshot().mood, 'annoyed');
+	assert.equal(new Set(replies).size, 3);
+
+	// 30s of quiet clears the grudge and invokes onForgive
+	for (const [, entry] of [...timers.entries()]) {
+		time = entry.at;
+		entry.callback();
+	}
+	assert.equal(forgiven, 1);
+	assert.deepEqual(controller.snapshot(), { clicks: 0, mood: 'happy', phase: 'idle', secondsRemaining: 0 });
+	controller.dispose();
 });

@@ -12,6 +12,7 @@ export default defineConfig({
 		starlight({
 			title: '类脑 Odysseia - 道馆挑战',
 			description: '面向类脑 Odysseia 社区的教程站。',
+			disable404Route: true,
 			pagination: false,
 			customCss: ['./src/styles/reading.css'],
 			locales: {

@@ -1,0 +1,87 @@
+---
+import PublicLayout from '../components/PublicLayout.astro';
+
+Astro.response.status = 404;
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+---
+
+<PublicLayout title="404 | 类脑 Odysseia - 道馆挑战" description="未找到请求的页面，请返回道馆首页或重新登录。">
+	<main class="public-shell narrow-shell not-found-page">
+		<section class="not-found-content" aria-labelledby="not-found-title">
+			<div class="not-found-mascot">
+				<img src="/mascot/annoyed.webp" width="616" height="880" alt="困惑又略带无奈的类脑娘" draggable="false" />
+			</div>
+			<p class="eyebrow">
+				<span class="little-flower" aria-hidden="true">✳</span> 404 · 页面未找到
+			</p>
+			<p class="not-found-code" aria-hidden="true">404</p>
+			<h1 id="not-found-title">这一页，好像被上下文湮没吃掉了。</h1>
+			<p class="not-found-description">
+				链接可能已经移动、地址拼写有误，或者它本来就不在道馆书架里。
+			</p>
+			<p class="not-found-d-meow-note" data-d-meow-ui>
+				（顺带一提，旅程的地图上也找不到这一页。）
+			</p>
+			<div class="not-found-actions">
+				<a class="button" href="/">
+					返回道馆首页 <span aria-hidden="true">↗</span>
+				</a>
+				<a class="button button-secondary" href="/login">前往登录</a>
+			</div>
+		</section>
+	</main>
+</PublicLayout>
+
+<style>
+	.not-found-page {
+		display: grid;
+		align-items: center;
+	}
+	.not-found-content {
+		max-width: 560px;
+	}
+	.not-found-mascot {
+		margin-bottom: 22px;
+	}
+	.not-found-mascot img {
+		display: block;
+		width: 112px;
+		height: auto;
+		filter: saturate(0.84);
+		mask-image: linear-gradient(#000 92%, transparent);
+	}
+	.not-found-code {
+		margin: 14px 0 0;
+		color: var(--accent);
+		font: italic 400 clamp(54px, 9vw, 84px)/1 var(--dojo-latin);
+		letter-spacing: -0.04em;
+	}
+	.not-found-content h1 {
+		margin: 12px 0 18px;
+		font: 400 clamp(26px, 4.5vw, 38px)/1.55 var(--dojo-serif);
+		letter-spacing: -0.025em;
+	}
+	.not-found-description {
+		margin: 0;
+		color: var(--muted);
+		font-size: 13px;
+		line-height: 2;
+	}
+	.not-found-d-meow-note {
+		display: none;
+		margin: 12px 0 0;
+		color: var(--faint);
+		font-size: 12px;
+		line-height: 1.9;
+	}
+	.not-found-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 14px;
+		margin-top: 30px;
+	}
+	.not-found-actions .button {
+		margin-top: 0;
+	}
+</style>

@@ -4,8 +4,11 @@ export const SITE_CLOSURE_MS = 60_000;
 export const SITE_CLOSURE_COOKIE = 'dojo_mascot_closure';
 export const SITE_CLOSURE_STORAGE = 'dojo:mascot-closure:v1';
 export const SITE_CLOSURE_PATH = '/closed';
+export const MASCOT_GRUDGE_MS = 5 * 60_000;
+export const MASCOT_GRUDGE_STORAGE = 'dojo:mascot-grudge:v1';
 
 /** @typedef {{ closesAt: number, reopensAt: number }} SiteClosure */
+/** @typedef {{ expiresAt: number }} MascotGrudge */
 
 /** @param {number} closesAt @returns {SiteClosure} */
 export function createSiteClosure(closesAt) {
@@ -64,4 +67,41 @@ export function siteClosureView(closure, pathname, now = Date.now()) {
 		redirect: onClosedPage ? null : SITE_CLOSURE_PATH,
 		remaining: Math.max(0, Math.ceil((valid.reopensAt - now) / 1000)),
 	};
+}
+
+/** @param {number} reopensAt @returns {MascotGrudge} */
+export function createMascotGrudge(reopensAt) {
+	return { expiresAt: reopensAt + MASCOT_GRUDGE_MS };
+}
+
+/** @param {MascotGrudge} grudge */
+export function serializeMascotGrudge(grudge) {
+	return String(grudge.expiresAt);
+}
+
+/** Bounded post-closure mood memory; expires automatically and never blocks access.
+ * @param {string | null | undefined} value
+ * @param {number} now
+ * @returns {MascotGrudge | null}
+ */
+export function parseMascotGrudge(value, now = Date.now()) {
+	if (!value || !/^\d{1,16}$/.test(value)) return null;
+	const expiresAt = Number(value);
+	if (!Number.isSafeInteger(expiresAt)) return null;
+	if (expiresAt <= now || expiresAt > now + MASCOT_GRUDGE_MS) return null;
+	return { expiresAt };
+}
+
+/** Returns `reopensAt` when a real 60-second closure expired within the grudge window.
+ * @param {string | null | undefined} value
+ * @param {number} now
+ * @returns {number | null}
+ */
+export function recentlyReopenedClosure(value, now = Date.now()) {
+	if (!value || !/^\d{1,16}\.\d{1,16}$/.test(value)) return null;
+	const [closesAt, reopensAt] = value.split('.').map(Number);
+	if (!Number.isSafeInteger(closesAt) || !Number.isSafeInteger(reopensAt)) return null;
+	if (closesAt <= 0 || reopensAt - closesAt !== SITE_CLOSURE_MS) return null;
+	if (reopensAt > now || now >= reopensAt + MASCOT_GRUDGE_MS) return null;
+	return reopensAt;
 }

@@ -1,16 +1,85 @@
 import {
+	createMascotGrudge,
 	createSiteClosure,
+	MASCOT_GRUDGE_STORAGE,
+	parseMascotGrudge,
 	parseSiteClosure,
 	readSiteClosureCookie,
+	recentlyReopenedClosure,
+	serializeMascotGrudge,
 	serializeSiteClosure,
 	siteClosureCookie,
 	siteClosureView,
 	SITE_CLOSURE_STORAGE,
 } from './site-closure.js';
-import type { SiteClosure } from './site-closure.js';
+import type { MascotGrudge, SiteClosure } from './site-closure.js';
 
 // Used only when neither persistence channel retained our write; never shadow shared cancellation.
 let documentClosure: SiteClosure | null = null;
+
+function grudgeStores(): Storage[] {
+	const stores: Storage[] = [];
+	try {
+		if (typeof localStorage !== 'undefined') stores.push(localStorage);
+	} catch {
+		/* Storage can be disabled. */
+	}
+	try {
+		if (typeof sessionStorage !== 'undefined') stores.push(sessionStorage);
+	} catch {
+		/* Session storage can be disabled. */
+	}
+	return stores;
+}
+
+export function recordMascotGrudge(reopensAt: number) {
+	const encoded = serializeMascotGrudge(createMascotGrudge(reopensAt));
+	for (const store of grudgeStores()) {
+		try {
+			store.setItem(MASCOT_GRUDGE_STORAGE, encoded);
+		} catch {
+			/* Storage can be disabled. */
+		}
+	}
+}
+
+export function clearMascotGrudge() {
+	for (const store of grudgeStores()) {
+		try {
+			store.removeItem(MASCOT_GRUDGE_STORAGE);
+		} catch {
+			/* Storage can be disabled. */
+		}
+	}
+}
+
+function promoteExpiredClosureToGrudge(now = Date.now()) {
+	try {
+		const raw = localStorage.getItem(SITE_CLOSURE_STORAGE);
+		if (!raw || parseSiteClosure(raw, now)) return;
+		const reopensAt = recentlyReopenedClosure(raw, now);
+		if (reopensAt !== null) recordMascotGrudge(reopensAt);
+		localStorage.removeItem(SITE_CLOSURE_STORAGE);
+	} catch {
+		/* Storage can be disabled. */
+	}
+}
+
+export function readMascotGrudge(now = Date.now()): MascotGrudge | null {
+	promoteExpiredClosureToGrudge(now);
+	for (const store of grudgeStores()) {
+		try {
+			const raw = store.getItem(MASCOT_GRUDGE_STORAGE);
+			if (!raw) continue;
+			const parsed = parseMascotGrudge(raw, now);
+			if (parsed) return parsed;
+			store.removeItem(MASCOT_GRUDGE_STORAGE);
+		} catch {
+			/* Storage can be disabled. */
+		}
+	}
+	return null;
+}
 
 export function readBrowserClosure(): SiteClosure | null {
 	let stored: SiteClosure | null = null;
@@ -63,9 +132,10 @@ export function cancelPendingClosure() {
 	return true;
 }
 
-/** The visual takeover retires the old mascot's browser-local closure timer only. */
+/** The visual takeover retires the old mascot's browser-local closure timer and grudge only. */
 export function clearClosureForTheme() {
 	writeBrowserClosure(null);
+	clearMascotGrudge();
 }
 
 let started = false;
@@ -79,6 +149,7 @@ export function startSiteClosureGuard() {
 		clearTimeout(timer);
 		const closure = readBrowserClosure();
 		const now = Date.now();
+		if (!closure) promoteExpiredClosureToGrudge(now);
 		const view = siteClosureView(closure, location.pathname, now);
 		if (view.redirect) {
 			if (view.phase === 'closed') document.documentElement.dataset.dojoClosed = 'true';
@@ -86,15 +157,7 @@ export function startSiteClosureGuard() {
 			return;
 		}
 		delete document.documentElement.dataset.dojoClosed;
-		if (!closure) {
-			try {
-				const value = localStorage.getItem(SITE_CLOSURE_STORAGE);
-				if (value && !parseSiteClosure(value)) localStorage.removeItem(SITE_CLOSURE_STORAGE);
-			} catch {
-				/* Storage can be disabled. */
-			}
-			return;
-		}
+		if (!closure) return;
 		if (view.phase === 'closed') {
 			const remaining = document.querySelector<HTMLElement>('[data-closure-remaining]');
 			if (remaining) {
