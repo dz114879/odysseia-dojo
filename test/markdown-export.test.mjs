@@ -11,7 +11,7 @@ function makeDoc(body, { title = 'SillyTavern 与 API', outdated = false } = {})
 			<div class="dojo-doc-heading">
 				<div class="dojo-doc-meta">
 					<p class="dojo-doc-category">基础教程</p>
-					<button class="dojo-copy-markdown" data-copy-markdown data-dojo-ui type="button">复制 Markdown</button>
+					<button class="dojo-copy-markdown" data-copy-markdown data-dojo-ui type="button">复制为 Markdown</button>
 				</div>
 				<h1 id="_top">${title}</h1>
 				${outdated ? '<aside class="dojo-outdated-notice" data-outdated-notice>本文部分内容可能已经过时。</aside>' : ''}
@@ -100,7 +100,7 @@ console.log(1);
 	assert.match(md, /<details>\n<summary>展开详情<\/summary>\n\n折叠里的正文。\n\n<\/details>/u);
 	assert.match(md, /\n---\n$/u);
 	assert.doesNotMatch(md, /Copy/u);
-	assert.doesNotMatch(md, /复制 Markdown/u);
+	assert.doesNotMatch(md, /复制为 Markdown/u);
 });
 
 test('exports clean original text without D-Meow UI or strikethrough corrections when D-Meow theme is active', async () => {

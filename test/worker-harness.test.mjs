@@ -1153,7 +1153,7 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		assert.equal(missingProtectedRoute.status, 404);
 		assert.equal(missingProtectedRoute.headers.get('cache-control'), 'private, no-store, max-age=0');
 		const protectedNotFoundBody = await missingProtectedRoute.text();
-		assert.match(protectedNotFoundBody, /这一页，好像被上下文湮没吃掉了。/u);
+		assert.match(protectedNotFoundBody, /您请求的资源并非存在。/u);
 		assert.doesNotMatch(protectedNotFoundBody, /<nav class="sidebar/u);
 	});
 
@@ -1162,7 +1162,7 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		assert.equal(response.status, 404);
 		assert.equal(response.headers.get('x-robots-tag'), 'noindex, nofollow');
 		const body = await response.text();
-		assert.match(body, /这一页，好像被上下文湮没吃掉了。/u);
+		assert.match(body, /您请求的资源并非存在。/u);
 		assert.match(body, /返回道馆首页/u);
 		assert.doesNotMatch(body, /<nav class="sidebar/u);
 		assert.doesNotMatch(body, /SillyTavern 与 API/u);

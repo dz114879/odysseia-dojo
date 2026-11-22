@@ -36,7 +36,7 @@ export function mountCopyMarkdown(root: Document = document) {
 	const content = root.querySelector('.sl-markdown-content');
 	if (!button || !label || !content) return () => {};
 
-	const defaultLabel = label.textContent?.trim() || '复制 Markdown';
+	const defaultLabel = label.textContent?.trim() || '复制为 Markdown';
 	const events = new AbortController();
 	let timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -57,7 +57,7 @@ export function mountCopyMarkdown(root: Document = document) {
 			if (!markdown) return;
 			const ok = await copyText(markdown);
 			button.dataset.copyState = ok ? 'copied' : 'error';
-			label.textContent = ok ? '已复制 Markdown' : '复制失败';
+			label.textContent = ok ? '已复制为 Markdown' : '复制失败';
 			if (status) status.textContent = ok ? '已复制当前页面为 Markdown。' : '复制失败，请手动选中正文复制。';
 			timer = setTimeout(resetState, RESET_MS);
 		},

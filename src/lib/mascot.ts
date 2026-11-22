@@ -1,20 +1,9 @@
-import {
-	createMascotController,
-	defaultMascotCaption,
-	MASCOT_GRUDGE_CAPTION,
-	MASCOT_GRUDGE_GREETING,
-	MASCOT_PEACE_REPLY,
-} from './mascot-controller.js';
-import {
-	cancelPendingClosure,
-	clearMascotGrudge,
-	readBrowserClosure,
-	readMascotGrudge,
-	scheduleBrowserClosure,
-} from './site-closure-client';
+import { createMascotController } from './mascot-controller.js';
+import { cancelPendingClosure, readBrowserClosure, scheduleBrowserClosure } from './site-closure-client';
 import { SITE_CLOSURE_PATH } from './site-closure.js';
 
 const captions = {
+	happy: '慢慢看，我在这里。',
 	annoyed: '好好看书，不许捣乱。',
 	angry: '类脑娘的耐心快用完了。',
 	furious: '哼！今天就到这里！',
@@ -45,33 +34,29 @@ export function mountMascot(root: HTMLElement) {
 		for (const word of wordTimers.keys()) removeWord(word);
 		live!.textContent = '';
 	}
-	function showReply(text: string) {
-		// One fresh bubble per click, without overlapping text under rapid input.
-		if (wordTimers.size >= 1) removeWord(wordTimers.keys().next().value!);
-		const word = document.createElement('span');
-		word.className = 'mascot-word';
-		word.textContent = text;
-		words!.appendChild(word);
-		wordTimers.set(
-			word,
-			setTimeout(() => removeWord(word), 3200),
-		);
-		live!.textContent = text;
-	}
 	const controller = createMascotController({
 		onFury: scheduleBrowserClosure,
-		onForgive: clearMascotGrudge,
 		readClosesAt: () => readBrowserClosure()?.closesAt ?? null,
 		onState(state) {
 			root.dataset.mood = state.mood;
-			if (state.mood === 'happy') caption.textContent = defaultMascotCaption(Date.now());
-			else if (state.mood === 'annoyed' && state.clicks === 0) caption.textContent = MASCOT_GRUDGE_CAPTION;
-			else caption.textContent = captions[state.mood];
+			caption.textContent = captions[state.mood];
 			countdown.hidden = state.phase !== 'countdown';
 			seconds.textContent = String(state.secondsRemaining);
 			if (state.clicks === 0) clearWords();
 		},
-		onReply: showReply,
+		onReply(text) {
+			// One fresh bubble per click, without overlapping text under rapid input.
+			if (wordTimers.size >= 1) removeWord(wordTimers.keys().next().value!);
+			const word = document.createElement('span');
+			word.className = 'mascot-word';
+			word.textContent = text;
+			words.appendChild(word);
+			wordTimers.set(
+				word,
+				setTimeout(() => removeWord(word), 3200),
+			);
+			live.textContent = text;
+		},
 		onClose() {
 			// Browsers normally only allow closing script-opened tabs. Never try to bypass this.
 			try {
@@ -87,12 +72,7 @@ export function mountMascot(root: HTMLElement) {
 	// Restore the original deadline; refresh must not restart or dismiss the countdown.
 	controller.reset();
 	const pending = readBrowserClosure();
-	if (pending) {
-		controller.restoreCountdown(pending.closesAt);
-	} else if (readMascotGrudge()) {
-		controller.restoreGrudge();
-		showReply(MASCOT_GRUDGE_GREETING);
-	}
+	if (pending) controller.restoreCountdown(pending.closesAt);
 	button.disabled = false;
 	root.dataset.ready = 'true';
 	button.addEventListener('click', () => controller.click(), { signal });
@@ -103,9 +83,7 @@ export function mountMascot(root: HTMLElement) {
 				location.replace(SITE_CLOSURE_PATH);
 				return;
 			}
-			clearMascotGrudge();
 			controller.reset();
-			showReply(MASCOT_PEACE_REPLY);
 			button.focus({ preventScroll: true });
 		},
 		{ signal },

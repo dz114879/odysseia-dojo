@@ -5,21 +5,15 @@ import { runInNewContext } from 'node:vm';
 import { parseHTML } from 'linkedom';
 import ts from 'typescript';
 import {
-	createMascotGrudge,
 	createSiteClosure,
-	MASCOT_GRUDGE_MS,
-	parseMascotGrudge,
 	parseSiteClosure,
 	readSiteClosureCookie,
-	recentlyReopenedClosure,
-	serializeMascotGrudge,
 	serializeSiteClosure,
 	siteClosureCookie,
 	siteClosureView,
 	SITE_CLOSURE_COOKIE,
 	SITE_CLOSURE_MS,
 } from '../src/lib/site-closure.js';
-import { MASCOT_GRUDGE_CAPTION, MASCOT_GRUDGE_GREETING, MASCOT_PEACE_REPLY } from '../src/lib/mascot-controller.js';
 
 const now = 1_800_000_000_000;
 const closure = createSiteClosure(now);
@@ -271,50 +265,3 @@ for (const unavailable of [{ storageDisabled: true }, { cookiesDisabled: true }]
 		second.dispose();
 	});
 }
-
-test('grudge parsing and recently-reopened detection remain strictly bounded', () => {
-	const grudge = createMascotGrudge(now);
-	assert.deepEqual(parseMascotGrudge(serializeMascotGrudge(grudge), now), grudge);
-	assert.equal(parseMascotGrudge(serializeMascotGrudge(grudge), grudge.expiresAt), null);
-	assert.equal(parseMascotGrudge(String(now + MASCOT_GRUDGE_MS + 1), now), null);
-	assert.equal(parseMascotGrudge('not-a-number', now), null);
-
-	const expired = createSiteClosure(now - SITE_CLOSURE_MS - 10_000);
-	assert.equal(recentlyReopenedClosure(serializeSiteClosure(expired), now), expired.reopensAt);
-	const tooOld = createSiteClosure(now - SITE_CLOSURE_MS - MASCOT_GRUDGE_MS);
-	assert.equal(recentlyReopenedClosure(serializeSiteClosure(tooOld), now), null);
-	const stillActive = createSiteClosure(now - 5_000);
-	assert.equal(recentlyReopenedClosure(serializeSiteClosure(stillActive), now), null);
-});
-
-test('making peace emits a closing reply and reopening after 60s enters and clears grudge cleanly', () => {
-	const browser = browserClients();
-	const first = browser.client();
-	for (let i = 0; i < 10; i++) first.poke();
-	first.cancel();
-	assert.equal(first.root.dataset.mood, 'happy');
-	assert.equal(first.root.querySelector('[data-mascot-live]').textContent, MASCOT_PEACE_REPLY);
-	first.dispose();
-
-	// Now let closure actually run through the full 8s + 60s window
-	const second = browser.client();
-	for (let i = 0; i < 10; i++) second.poke();
-	browser.advance(8000);
-	assert.deepEqual(second.redirects, ['/closed']);
-	second.dispose();
-
-	// 60 seconds later, returning home promotes the expired closure into a bounded grudge
-	browser.advance(SITE_CLOSURE_MS);
-	const returned = browser.client();
-	assert.equal(returned.root.dataset.mood, 'annoyed');
-	assert.equal(returned.root.querySelector('[data-mascot-caption]').textContent, MASCOT_GRUDGE_CAPTION);
-	assert.equal(returned.root.querySelector('[data-mascot-live]').textContent, MASCOT_GRUDGE_GREETING);
-
-	// First poke while holding a grudge gets the sharp opening reply; 30s quiet forgives
-	returned.poke();
-	assert.equal(returned.root.dataset.mood, 'annoyed');
-	assert.match(returned.root.querySelector('[data-mascot-live]').textContent, /刚把门打开/u);
-	browser.advance(30_000);
-	assert.equal(returned.root.dataset.mood, 'happy');
-	returned.dispose();
-});

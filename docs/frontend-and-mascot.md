@@ -12,31 +12,26 @@ privacy disclosures, protected-content boundaries and browser observation are un
   not over reading content. The illustration remains visible with JavaScript disabled.
 - `src/lib/mascot-controller.js`: independent state/timing controller. Pokes 1–3 are
   friendly, 4–6 impatient, 7–9 angry, and 10 furious. Each poke produces a new reply.
-  The last warning explicitly says that another poke will close the site. Also owns
-  the time-of-day idle caption (`defaultMascotCaption()`), peace-making closing reply,
-  and post-closure grudge opening replies.
+  The last warning explicitly says that another poke will close the site.
 - `src/lib/mascot.ts`: one small speech bubble per click, replacing the prior bubble
   to prevent overlapping text. Bubbles last 3.2 seconds. A 30-second pause resets her
-  patience before fury (and clears an active post-closure grudge). Fury starts an
-  8-second countdown; additional clicks neither extend it nor create additional close
-  attempts. “好啦，不闹了” cancels the countdown and shows a short closing reply.
+  patience before fury. Fury starts an 8-second countdown; additional clicks neither
+  extend it nor create additional close attempts. “好啦，不闹了” cancels the countdown.
 - `src/styles/mascot.css`: quiet bubble treatment, expression transitions and a brief
   huff; animations are disabled with `prefers-reduced-motion`.
-- `src/lib/site-closure.js`: bounded browser closure state, bounded 5-minute
-  post-closure grudge state (`dojo:mascot-grudge:v1`), and pure functions for choosing
-  the pending/closed/reopened view. It does not intercept HTTP requests.
+- `src/lib/site-closure.js`: bounded browser closure state and pure functions for
+  choosing the pending/closed/reopened view. It does not intercept HTTP requests.
 - `src/lib/site-closure-client.ts`, `SiteClosureGuard.astro`, `ReadingHead.astro`:
-  cookie/local-storage synchronization, pending deadline restoration, post-closure
-  grudge promotion on reopening, open-tab and back/forward-cache guards shared by
-  public and reading pages.
+  cookie/local-storage synchronization, pending deadline restoration, open-tab and
+  back/forward-cache guards shared by public and reading pages.
 - `src/pages/closed.astro`: a standalone closed page, not a dismissible dialog.
 - `src/pages/404.astro`: custom minimalist 404 page (`disable404Route: true` in
   `astro.config.mjs`), preserving HTTP 404 and private cache headers on authenticated
   missing routes without exposing protected sidebar links on public 404s.
 - `src/lib/console-easter-egg.js`, `src/lib/console-easter-egg-client.ts`,
   `src/components/ConsoleEasterEgg.astro`: deduplicated DevTools console Easter egg
-  banner (`Nice try.` + collapsed hints in default theme, `SIGNAL D` banner in D喵
-  theme). Pure presentation with zero storage, network or auth side effects.
+  banner (`类脑 ODYSSEIA · 道馆教程` + random splash text in default theme, `SIGNAL D`
+  banner in D喵 theme). Pure presentation with zero storage, network or auth side effects.
 - `src/lib/markdown-export.js`, `src/lib/copy-markdown.ts`,
   `src/components/ProtectedPageTitle.astro`: client-side Copy as Markdown button on
   authenticated reading pages. Serializes rendered Starlight headings, prose, code
@@ -49,8 +44,8 @@ privacy disclosures, protected-content boundaries and browser observation are un
   support. Excludes linked images, UI widgets, `[data-no-lightbox]` and tiny icons.
 - `test/mascot-controller.test.mjs`, `test/site-closure.test.mjs`,
   `test/markdown-export.test.mjs`, `test/image-lightbox.test.mjs`,
-  `test/console-easter-egg.test.mjs`: thresholds, grudge/peace lifecycle, browser
-  navigation, Markdown export, screenshot lightbox and console banner coverage.
+  `test/console-easter-egg.test.mjs`: thresholds, browser navigation, Markdown export,
+  screenshot lightbox and console banner coverage.
 
 At fury, the original close deadline and its 60-second reopening deadline are saved in
 the browser using a site-wide SameSite=Lax cookie and local storage. Refreshing during
