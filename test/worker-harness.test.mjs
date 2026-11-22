@@ -431,8 +431,17 @@ describe('production Worker test seam', { concurrency: false }, () => {
 			);
 			assert.doesNotMatch(text, /闭馆|彩蛋|D喵|durvis|隐藏主题|localStorage|本地偏好/iu);
 		}
+		const loginLink = loginDocument.querySelector('[data-discord-login]');
+		assert.equal(loginLink?.getAttribute('data-astro-prefetch'), 'false');
+		assert.match(loginBody, /不要使用 Discord 内置浏览器执行登录/u);
 
-		assert.match(await accessDenied.text(), /您不在类脑 ODYSSEIA 服务器，请先加入。/u);
+		const accessDeniedBody = await accessDenied.text();
+		assert.match(accessDeniedBody, /您不在类脑 ODYSSEIA 服务器，请先加入。/u);
+		const { document: accessDeniedDocument } = parseHTML(accessDeniedBody);
+		assert.equal(
+			accessDeniedDocument.querySelector('a[href="/api/auth/discord"]')?.getAttribute('data-astro-prefetch'),
+			'false',
+		);
 		assert.match(await cancelled.text(), /Discord 授权未完成，无法验证您的访问资格。/u);
 		assert.match(await unavailable.text(), /暂时无法连接 Discord，请稍后重试。/u);
 	});
@@ -457,6 +466,20 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		assert.match(stateCookie, /SameSite=Lax/u);
 		assert.match(stateCookie, /Path=\//u);
 		assert.match(stateCookie, /Max-Age=600/u);
+	});
+
+	test('ignores prefetch requests to OAuth start without overwriting the state cookie', async () => {
+		for (const headers of [
+			{ 'Sec-Purpose': 'prefetch' },
+			{ Purpose: 'prefetch' },
+			{ 'Sec-Purpose': 'prefetch;prerender' },
+		]) {
+			const response = await harness.fetch('/api/auth/discord', { redirect: 'manual', headers });
+			assert.equal(response.status, 204);
+			assert.equal(response.headers.get('cache-control'), 'no-store');
+			assert.equal(response.headers.get('set-cookie'), null);
+			assert.equal(response.headers.get('location'), null);
+		}
 	});
 
 	test('issues a fixed session after identity and paginated Guild membership verification', async () => {

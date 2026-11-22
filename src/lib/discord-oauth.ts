@@ -9,6 +9,7 @@ const DISCORD_AUTHORIZE_URL = 'https://discord.com/oauth2/authorize';
 const FALLBACK_RETURN_TO = '/docs/tutorials/';
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+const PREFETCH_HEADERS = ['Sec-Purpose', 'Purpose', 'X-Purpose', 'X-Moz'] as const;
 
 interface OAuthEnvironment {
 	DISCORD_CLIENT_ID: string;
@@ -136,7 +137,18 @@ export function validatedReturnTo(value: string | null | undefined): string {
 	}
 }
 
+function isPrefetchRequest(request: Request): boolean {
+	return PREFETCH_HEADERS.some((header) => {
+		const value = request.headers.get(header);
+		return value !== null && /\b(?:prefetch|prerender|preview)\b/iu.test(value);
+	});
+}
+
 export function startDiscordOAuth(request: Request, env: OAuthEnvironment): Response {
+	if (isPrefetchRequest(request)) {
+		return new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store' } });
+	}
+
 	const config = validatedConfig(env);
 	const state = randomState();
 	const returnTo = validatedReturnTo(new URL(request.url).searchParams.get('returnTo'));

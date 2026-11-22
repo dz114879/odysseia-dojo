@@ -23,10 +23,16 @@ if (requestedReturnTo) oauthUrl.searchParams.set('returnTo', requestedReturnTo);
 					<a href="/#privacy">首页隐私说明</a>。
 				</p>
 			</div>
-			<a class="button" data-discord-login href={`${oauthUrl.pathname}${oauthUrl.search}`}>
+			<a
+				class="button"
+				data-discord-login
+				data-astro-prefetch="false"
+				href={`${oauthUrl.pathname}${oauthUrl.search}`}
+			>
 				使用 Discord 登录
 			</a>
 			<p class="muted">仅请求 Discord 身份和服务器列表，用于确认成员资格。</p>
+			<p class="muted">请不要使用 Discord 内置浏览器执行登录，可能导致失败，建议改用系统浏览器打开。</p>
 		</section>
 	</main>
 	<script>
