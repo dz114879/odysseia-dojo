@@ -19,14 +19,33 @@ privacy disclosures, protected-content boundaries and browser observation are un
   extend it nor create additional close attempts. “好啦，不闹了” cancels the countdown.
 - `src/styles/mascot.css`: quiet bubble treatment, expression transitions and a brief
   huff; animations are disabled with `prefers-reduced-motion`.
-- `src/lib/site-closure.js`: bounded browser closure state and a pure function for
+- `src/lib/site-closure.js`: bounded browser closure state and pure functions for
   choosing the pending/closed/reopened view. It does not intercept HTTP requests.
 - `src/lib/site-closure-client.ts`, `SiteClosureGuard.astro`, `ReadingHead.astro`:
   cookie/local-storage synchronization, pending deadline restoration, open-tab and
   back/forward-cache guards shared by public and reading pages.
 - `src/pages/closed.astro`: a standalone closed page, not a dismissible dialog.
-- `test/mascot-controller.test.mjs`, `test/site-closure.test.mjs`: thresholds,
-  browser navigation, restoration, expiry, isolation and lifecycle coverage.
+- `src/pages/404.astro`: custom minimalist 404 page (`disable404Route: true` in
+  `astro.config.mjs`), preserving HTTP 404 and private cache headers on authenticated
+  missing routes without exposing protected sidebar links on public 404s.
+- `src/lib/console-easter-egg.js`, `src/lib/console-easter-egg-client.ts`,
+  `src/components/ConsoleEasterEgg.astro`: deduplicated DevTools console Easter egg
+  banner (`类脑 ODYSSEIA · 道馆教程` + random splash text in default theme, `SIGNAL D`
+  banner in D喵 theme). Pure presentation with zero storage, network or auth side effects.
+- `src/lib/markdown-export.js`, `src/lib/copy-markdown.ts`,
+  `src/components/ProtectedPageTitle.astro`: client-side Copy as Markdown button on
+  authenticated reading pages. Serializes rendered Starlight headings, prose, code
+  blocks, lists, tables, asides and `<details>` into clean Markdown while excluding UI
+  chrome and unwrapping D喵 reading corrections to the original name.
+- `src/lib/image-lightbox.js`, `src/components/ReadingEnhancements.astro`: native
+  `<dialog>` click-to-zoom lightbox for tutorial screenshots inside
+  `.sl-markdown-content`, with keyboard navigation (`Enter`/`Space`, `Esc`,
+  `ArrowLeft`/`ArrowRight`), 1:1 zoom toggle, focus restoration and reduced-motion
+  support. Excludes linked images, UI widgets, `[data-no-lightbox]` and tiny icons.
+- `test/mascot-controller.test.mjs`, `test/site-closure.test.mjs`,
+  `test/markdown-export.test.mjs`, `test/image-lightbox.test.mjs`,
+  `test/console-easter-egg.test.mjs`: thresholds, browser navigation, Markdown export,
+  screenshot lightbox and console banner coverage.
 
 At fury, the original close deadline and its 60-second reopening deadline are saved in
 the browser using a site-wide SameSite=Lax cookie and local storage. Refreshing during

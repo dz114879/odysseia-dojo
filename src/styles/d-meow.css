@@ -49,6 +49,29 @@ html[data-dojo-theme='d-meow'] .button-secondary:hover {
 html[data-dojo-theme='d-meow'] :is(.little-flower, .title-dash, .section-mark) {
 	color: #294c65;
 }
+html[data-dojo-theme='d-meow'] .not-found-mascot {
+	display: none;
+}
+html[data-dojo-theme='d-meow'] .not-found-d-meow-note {
+	display: block;
+}
+html[data-dojo-theme='d-meow'] .dojo-lightbox::backdrop {
+	background: rgba(18, 46, 66, 0.86);
+}
+html[data-dojo-theme='d-meow'] .dojo-lightbox-btn,
+html[data-dojo-theme='d-meow'] .dojo-lightbox-nav {
+	border-color: rgba(238, 246, 252, 0.32);
+	background: rgba(21, 56, 79, 0.8);
+	color: #eef6fc;
+}
+html[data-dojo-theme='d-meow'] .dojo-lightbox-btn:hover,
+html[data-dojo-theme='d-meow'] .dojo-lightbox-nav:hover {
+	background: rgba(32, 81, 111, 0.94);
+	border-color: rgba(238, 246, 252, 0.58);
+}
+html[data-dojo-theme='d-meow'] .dojo-lightbox-canvas {
+	background: #f1f8fd;
+}
 html[data-dojo-theme='d-meow'] .public-hero {
 	position: relative;
 	grid-template-columns: minmax(0, 1fr) 220px;

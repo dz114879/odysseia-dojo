@@ -1031,6 +1031,7 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		const { document: tutorialDocument } = parseHTML(tutorialBody);
 		assert.equal(tutorialDocument.querySelector('header .header-source-link, header a[href*="github.com"]'), null);
 		assert.match(tutorialBody, /data-content-category="tutorial"/u);
+		assert.match(tutorialBody, /data-copy-markdown/u);
 		assert.doesNotMatch(tutorialBody, /重新记录防代打观测/u);
 		assert.equal([...tutorialBody.matchAll(/<h1(?:\s|>)/gu)].length, 1);
 		assert.doesNotMatch(tutorialBody, /基础教程属于答题范围/u);
@@ -1151,6 +1152,20 @@ describe('production Worker test seam', { concurrency: false }, () => {
 		});
 		assert.equal(missingProtectedRoute.status, 404);
 		assert.equal(missingProtectedRoute.headers.get('cache-control'), 'private, no-store, max-age=0');
+		const protectedNotFoundBody = await missingProtectedRoute.text();
+		assert.match(protectedNotFoundBody, /您请求的资源并非存在。/u);
+		assert.doesNotMatch(protectedNotFoundBody, /<nav class="sidebar/u);
+	});
+
+	test('renders the custom public 404 page without leaking protected navigation', async () => {
+		const response = await harness.fetch('/no-such-public-page');
+		assert.equal(response.status, 404);
+		assert.equal(response.headers.get('x-robots-tag'), 'noindex, nofollow');
+		const body = await response.text();
+		assert.match(body, /您请求的资源并非存在。/u);
+		assert.match(body, /返回道馆首页/u);
+		assert.doesNotMatch(body, /<nav class="sidebar/u);
+		assert.doesNotMatch(body, /SillyTavern 与 API/u);
 	});
 
 	test('does not make authenticated protected output reusable by anonymous requests', async () => {

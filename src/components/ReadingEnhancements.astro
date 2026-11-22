@@ -1,0 +1,26 @@
+<script>
+	import { mountCopyMarkdown } from '../lib/copy-markdown';
+	import { mountImageLightbox } from '../lib/image-lightbox.js';
+
+	let cleanups: (() => void)[] = [];
+
+	function unmount() {
+		for (const cleanup of cleanups) cleanup();
+		cleanups = [];
+	}
+
+	function mount() {
+		unmount();
+		cleanups = [mountCopyMarkdown(document), mountImageLightbox(document)];
+	}
+
+	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true });
+	else mount();
+
+	document.addEventListener('astro:page-load', mount);
+	document.addEventListener('astro:before-swap', unmount);
+	window.addEventListener('pagehide', unmount);
+	window.addEventListener('pageshow', (event) => {
+		if (event.persisted) mount();
+	});
+</script>
